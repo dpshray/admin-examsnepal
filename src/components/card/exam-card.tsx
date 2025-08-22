@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Eye, EyeOff, LucideDelete, Upload } from "lucide-react";
+import { BookOpen, Eye, EyeOff, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 import { DeleteDialog } from "../modal/delete-model";
 
@@ -76,7 +76,7 @@ export function ExamCard({
                     size={"sm"}
                     onClick={() => setDeleteOpen(true)}
                 >
-                    <LucideDelete className="w-4 h-4 text-red-600" />
+                    <Trash2 className="w-4 h-4 text-red-600" />
                 </Button>
             </div>
             </div>

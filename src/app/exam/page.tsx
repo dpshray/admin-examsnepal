@@ -66,12 +66,11 @@ export default function ExamDashboard() {
 
   const handleDeleteExam = async (id: number) => {
     try {
-      await examService.deleteExam(id); 
+      await examService.deleteQuestion(id); 
       toast.success("Exam deleted successfully"); 
       fetchExams();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete exam"); 
-      console.error(error);
     }
   };
 
