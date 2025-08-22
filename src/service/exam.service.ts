@@ -86,6 +86,17 @@ class ExamService extends HttpService {
         }
     }
 
+    async deleteExam(id: number) {
+    try {
+      return await this.deleteRequest({
+        url: `/teacher/exam/${id}`,
+        config: { auth: true },
+      });
+    } catch (error) {
+      console.error(`Error deleting exam: ${error}`);
+      throw error;
+    }
+  }
 }
 
 export const examService = new ExamService()

@@ -19,6 +19,8 @@ interface ExamFormData {
     exam_name: string
     description: string
     publish: boolean
+    assign: boolean
+    live: boolean
 }
 
 interface ExamModalProps {
@@ -32,6 +34,8 @@ const examSchema = Yup.object().shape({
     exam_name: Yup.string().required("Exam name is required"),
     description: Yup.string().required("Description is required"),
     publish: Yup.boolean().required("Publish is required"),
+    assign: Yup.boolean().required("Assign is required"),
+    live: Yup.boolean().required("Live is required"),
 })
 
 export function ExamModal({isOpen, onClose}: ExamModalProps) {
@@ -55,6 +59,8 @@ export function ExamModal({isOpen, onClose}: ExamModalProps) {
             exam_name: "",
             description: "",
             publish: true,
+            assign: true,
+            live: true
         },
     })
 
@@ -64,13 +70,18 @@ export function ExamModal({isOpen, onClose}: ExamModalProps) {
         setIsSubmitting(true)
         setError(null)
         try {
-           const response = await examService.createExam(data)
-            if (response) {
-                console.log(' Response:', response)
-                toast.success(response?.message || "Exam created successfully")
-                onClose()
+            const payload = {
+                ...data,
+                publish: data.publish ? 1 : 0,
+                assign: data.assign ? 1 : 0,
+                live: data.live ? 1 : 0,
             }
-
+            const response = await examService.createExam(payload)
+                if (response) {
+                    console.log(' Response:', response)
+                    toast.success(response?.message || "Exam created successfully")
+                    onClose()
+                }
         } catch (error: any) {
             setError( error?.message || "Failed to create exam. Please try again.")
         } finally {
@@ -171,6 +182,26 @@ export function ExamModal({isOpen, onClose}: ExamModalProps) {
                             disabled={loading || isSubmitting}
                         />
                         <Label htmlFor="publish">Publish exam</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            id="assign"
+                            checked={formData.assign}
+                            className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                            onCheckedChange={(checked) => setValue("assign", checked)}
+                            disabled={loading || isSubmitting}
+                        />
+                        <Label htmlFor="assign">Assign exam</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            id="live"
+                            checked={formData.live}
+                            className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                            onCheckedChange={(checked) => setValue("live", checked)}
+                            disabled={loading || isSubmitting}
+                        />
+                        <Label htmlFor="live">Live exam</Label>
                     </div>
                     <div className="flex justify-end space-x-2 pt-4">
                         <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting || loading}>
