@@ -26,6 +26,8 @@ interface ExamFormData {
 interface ExamModalProps {
     isOpen: boolean
     onClose: () => void
+    mode?: "create" | "update"
+    initialData?: Partial<ExamFormData> & { id?: number } | null
 }
 
 const examSchema = Yup.object().shape({
@@ -38,12 +40,14 @@ const examSchema = Yup.object().shape({
     live: Yup.boolean().required("Live is required"),
 })
 
-export function ExamModal({isOpen, onClose}: ExamModalProps) {
+export function ExamModal({isOpen, onClose, mode = "create", initialData}: ExamModalProps) {
     const [examTypes, setExamTypes] = useState<{ id: number; name: string }[]>([])
     const [categoryTypes, setCategoryTypes] = useState<{ id: number; name: string }[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    console.log("Exam Modal Initial Data:", initialData);
 
     const {
         register,
@@ -76,18 +80,33 @@ export function ExamModal({isOpen, onClose}: ExamModalProps) {
                 assign: data.assign ? 1 : 0,
                 live: data.live ? 1 : 0,
             }
-            const response = await examService.createExam(payload)
-                if (response) {
-                    console.log(' Response:', response)
-                    toast.success(response?.message || "Exam created successfully")
-                    onClose()
-                }
+            let response
+                if (mode === "update" && initialData?.id) {
+                response = await examService.updateExam(initialData.id, payload)
+                toast.success(response?.message || "Exam updated successfully")
+                } else {
+                response = await examService.createExam(payload)
+                toast.success(response?.message || "Exam created successfully")
+            }
         } catch (error: any) {
             setError( error?.message || "Failed to create exam. Please try again.")
         } finally {
             setIsSubmitting(false)
         }
     }
+
+    useEffect(() => {
+        if (mode === "update" && initialData) {
+            setValue("exam_type_id", initialData.exam_type_id || 1)
+            setValue("category_type", initialData.category_type || 1)
+            setValue("exam_name", initialData.exam_name || "")
+            setValue("description", initialData.description || "")
+            setValue("publish", Boolean(initialData.publish))
+            setValue("assign", Boolean(initialData.assign))
+            setValue("live", Boolean(initialData.live))
+        }
+    }, [mode, initialData, setValue])
+
 
     useEffect(() => {
         if (!isOpen) return
@@ -97,9 +116,10 @@ export function ExamModal({isOpen, onClose}: ExamModalProps) {
         const fetchExamTypes = async () => {
             try {
                 const response = await examService.getExamType()
-                console.log(response)
                 setExamTypes(response)
-                if (response.length > 0) setValue("exam_type_id", response[0].id)
+                if (mode === "create" && response.length > 0) {
+                    setValue("exam_type_id", response[0].id)
+                }            
             } catch {
                 setError("Failed to load exam types.")
             }
@@ -115,13 +135,13 @@ export function ExamModal({isOpen, onClose}: ExamModalProps) {
         }
 
         Promise.all([fetchExamTypes(), fetchCategoryTypes()]).finally(() => setLoading(false))
-    }, [isOpen, setValue])
+    }, [isOpen, mode, setValue])
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Create New Exam</DialogTitle>
+                    <DialogTitle>{mode === "update" ? "Update Exam" : "Create New Exam"}</DialogTitle>
                 </DialogHeader>
                 {loading && (
                     <div className="mb-4 text-center text-sm text-gray-500">Loading...</div>
@@ -208,7 +228,8 @@ export function ExamModal({isOpen, onClose}: ExamModalProps) {
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isSubmitting || loading}>
-                            {isSubmitting ? "Creating..." : "Create Exam"}
+                            {isSubmitting ? (mode === "update" ? "Updating..." : "Creating...") 
+                                : (mode === "update" ? "Update Exam" : "Create Exam")}
                         </Button>
                     </div>
                 </form>

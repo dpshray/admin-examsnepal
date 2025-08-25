@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Eye, EyeOff, Trash2, Upload } from "lucide-react";
+import { BookOpen, Eye, EyeOff, Pencil, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 import { DeleteDialog } from "../modal/delete-model";
+import { ExamModal } from "../modal/exam-modal";
 
 interface ExamType {
   id: number;
@@ -19,22 +20,25 @@ interface ExamType {
 }
 
 interface ExamCardProps {
-  id: number;
-  published: 0 | 1 | null;
-  exam_type: ExamType;
-  exam_name: string;
-  total_questions: number;
-  hasQuestions?: boolean;
-  onUploadQuestions: (examId: string | number) => void;
-  description?: string;
-  exam_type_id?: number;
-  category_type?: string;
-  onDelete?: (examId: number) => Promise<void>;
+    id: number;
+    // published: 0 | 1 | null;
+    exam_type: ExamType;
+    exam_name: string;
+    total_questions: number;
+    hasQuestions?: boolean;
+    onUploadQuestions: (examId: string | number) => void;
+    description?: string;
+    exam_type_id?: number;
+    category_type?: number;
+    onDelete?: (examId: number) => Promise<void>;
+    publish: boolean;
+    assign: boolean;
+    live: boolean;
 }
 
 export function ExamCard({
   id,
-  published,
+  publish,
   exam_type,
   exam_name,
   total_questions,
@@ -43,10 +47,25 @@ export function ExamCard({
   description,
   exam_type_id,
   category_type,
+  assign, 
+  live,
   onDelete,
 }: ExamCardProps) {
-  const isPublished = published === 1;
+  const isPublished = publish;
   const [ deleteOpen , setDeleteOpen] = useState(false)
+  const [ openUpdate, setOpenUpdate] = useState(false)
+
+  const examData = {
+    id,
+    exam_name,
+    description,
+    exam_type_id: exam_type_id ?? exam_type.id,
+    category_type,
+    publish,
+    assign: assign,
+    live: live,
+  };
+//   console.log("Exam Card Data:", examData);
 
   return (
     <div>
@@ -71,13 +90,22 @@ export function ExamCard({
                     Draft
                 </Badge>
                 )}
-                <Button 
-                    variant={"ghost"} 
-                    size={"sm"}
-                    onClick={() => setDeleteOpen(true)}
-                >
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                </Button>
+                <div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setOpenUpdate(true)}
+                    >
+                        <Pencil className="w-4 h-4 text-blue-600" />
+                    </Button>
+                    <Button 
+                        variant={"ghost"} 
+                        size={"sm"}
+                        onClick={() => setDeleteOpen(true)}
+                    >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                    </Button>
+                </div>
             </div>
             </div>
         </CardHeader>
@@ -99,7 +127,7 @@ export function ExamCard({
             <div className="flex justify-between text-xs">
                 <span>Questions:</span>
                 <Badge variant={hasQuestions ? "default" : "outline"}>
-                {hasQuestions ? "Available" : "None"}
+                    {hasQuestions ? "Available" : "None"}
                 </Badge>
             </div>
             </div>
@@ -125,6 +153,13 @@ export function ExamCard({
             </Button>
         </CardFooter>
         </Card>
+
+        <ExamModal
+            isOpen={openUpdate}
+            onClose={() => setOpenUpdate(false)}
+            mode="update"
+            initialData={examData}
+        />
 
         <DeleteDialog
             open={deleteOpen}

@@ -31,7 +31,6 @@ export default function ExamDashboard() {
       };
       const response = await examService.getAllExams(params);
       setExams(response?.data ?? []);
-      console.log("All Exams Response:", response);
       setCurrentPage(response?.current_page ?? 1);
       setTotalPages(response?.last_page ?? 1);
     } catch {
@@ -119,12 +118,14 @@ export default function ExamDashboard() {
                 <ExamCard
                   key={exam.id}
                   id={exam.id}
-                  published={exam.published}
+                  publish={exam.published}
                   exam_type={exam.exam_type}
                   exam_name={exam.exam_name}
                   total_questions={exam.total_questions}
                   hasQuestions={exam.hasQuestions}
                   description={exam.description}
+                  assign={exam.assign}
+                  live={exam.live}
                   onUploadQuestions={handleUploadQuestions}
                   onDelete={handleDeleteExam}
                 />
