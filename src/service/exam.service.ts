@@ -109,6 +109,33 @@ class ExamService extends HttpService {
         throw error;
         }
     }
+
+    async updateExam(id: number, data: any) {
+        try {
+        return await this.putRequest({
+            url: `/teacher/exam/${id}`,
+            data,
+            config: { auth: true },
+        });
+        } catch (error) {
+        console.error(`Error updating exam: ${error}`);
+        throw error;
+        }
+    }
+
+    async updateQuestion(id: number, data: any) {
+        try {
+        return await this.putRequest({
+            url: `/teacher/question/${id}`,
+            data,
+            config: { auth: true },
+        });
+        } catch (error) {
+        console.error(`Error updating question: ${error}`);
+        throw error;
+        }
+    }
+
 }
 
 export const examService = new ExamService()

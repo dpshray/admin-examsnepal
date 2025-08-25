@@ -496,6 +496,7 @@ export default function ExamQuestionsPage() {
                 question={question as any}
                 index={index}
                 onDelete={handleDeleteQuestion}
+                onUpdated={fetchExamData}
               />
             ))}
             <div>
