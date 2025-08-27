@@ -171,7 +171,7 @@ export function ExamModal({isOpen, onClose, mode = "create", initialData, onSucc
                         />
                     </div>
                     <div className="grid gap-4">
-                        <div className="space-y-2">
+                        <div className="space-y-2 max-w-[380px]">
                             <SelectInputField
                                 label="Exam Type"
                                 placeholder="Select Exam Type"
@@ -181,7 +181,7 @@ export function ExamModal({isOpen, onClose, mode = "create", initialData, onSucc
                                 disabled={loading || isSubmitting}
                             />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 max-w-[380px]">
                             <SelectInputField
                                 label="Category Type"
                                 placeholder="Select Category"
