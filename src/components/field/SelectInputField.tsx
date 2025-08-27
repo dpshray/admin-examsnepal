@@ -89,10 +89,10 @@ export default function SelectInputField({
                 >
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
-                <SelectContent className="border border-input">
+                <SelectContent className="border border-input max-w-[380px]">
                     <SelectGroup>
                         {options.map(({ value: optionValue, label: optionLabel }) => (
-                            <SelectItem key={String(optionValue)} value={String(optionValue)}>
+                            <SelectItem key={String(optionValue)} value={String(optionValue)} className="whitespace-normal break-words text-sm leading-snug">
                                 {optionLabel}
                             </SelectItem>
                         ))}

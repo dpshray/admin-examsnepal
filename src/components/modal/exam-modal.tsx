@@ -28,6 +28,7 @@ interface ExamModalProps {
     onClose: () => void
     mode?: "create" | "update"
     initialData?: Partial<ExamFormData> & { id?: number } | null
+    onSuccess?: () => void
 }
 
 const examSchema = Yup.object().shape({
@@ -40,14 +41,12 @@ const examSchema = Yup.object().shape({
     live: Yup.boolean().required("Live is required"),
 })
 
-export function ExamModal({isOpen, onClose, mode = "create", initialData}: ExamModalProps) {
+export function ExamModal({isOpen, onClose, mode = "create", initialData, onSuccess}: ExamModalProps) {
     const [examTypes, setExamTypes] = useState<{ id: number; name: string }[]>([])
     const [categoryTypes, setCategoryTypes] = useState<{ id: number; name: string }[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    console.log("Exam Modal Initial Data:", initialData);
 
     const {
         register,
@@ -88,6 +87,8 @@ export function ExamModal({isOpen, onClose, mode = "create", initialData}: ExamM
                 response = await examService.createExam(payload)
                 toast.success(response?.message || "Exam created successfully")
             }
+            if (onSuccess) onSuccess()
+            onClose()
         } catch (error: any) {
             setError( error?.message || "Failed to create exam. Please try again.")
         } finally {
@@ -106,36 +107,45 @@ export function ExamModal({isOpen, onClose, mode = "create", initialData}: ExamM
             setValue("live", Boolean(initialData.live))
         }
     }, [mode, initialData, setValue])
-
+    
+    console.log("Initial Data:", initialData);
 
     useEffect(() => {
-        if (!isOpen) return
-        setLoading(true)
-        setError(null)
+    if (!isOpen) return
+    setLoading(true)
+    setError(null)
 
-        const fetchExamTypes = async () => {
-            try {
-                const response = await examService.getExamType()
-                setExamTypes(response)
-                if (mode === "create" && response.length > 0) {
-                    setValue("exam_type_id", response[0].id)
-                }            
-            } catch {
-                setError("Failed to load exam types.")
-            }
-        }
-        const fetchCategoryTypes = async () => {
-            try {
-                const response = await examService.examCategory()
-                setCategoryTypes(response)
-                if (response.length > 0) setValue("category_type", response[0].id)
-            } catch {
-                setError((prev) => (prev ? prev + " Failed to load category types." : "Failed to load category types."))
-            }
-        }
+    const fetchData = async () => {
+        try {
+            const [examTypesRes, categoryTypesRes] = await Promise.all([
+                examService.getExamType(),
+                examService.examCategory()
+            ])
 
-        Promise.all([fetchExamTypes(), fetchCategoryTypes()]).finally(() => setLoading(false))
-    }, [isOpen, mode, setValue])
+            setExamTypes(examTypesRes)
+            setCategoryTypes(categoryTypesRes)
+
+            if (mode === "create") {
+                if (examTypesRes.length > 0) setValue("exam_type_id", examTypesRes[0].id)
+                if (categoryTypesRes.length > 0) setValue("category_type", categoryTypesRes[0].id)
+            } else if (mode === "update" && initialData) {
+                setValue("exam_type_id", initialData.exam_type_id || 1)
+                setValue("category_type", initialData.category_type || 1)
+                setValue("exam_name", initialData.exam_name || "")
+                setValue("description", initialData.description || "")
+                setValue("publish", Boolean(initialData.publish))
+                setValue("assign", Boolean(initialData.assign))
+                setValue("live", Boolean(initialData.live))
+            }
+        } catch {
+            setError("Failed to load exam/category types.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    fetchData()
+}, [isOpen, mode, initialData, setValue])
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>

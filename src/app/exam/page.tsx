@@ -31,6 +31,7 @@ export default function ExamDashboard() {
       };
       const response = await examService.getAllExams(params);
       setExams(response?.data ?? []);
+      console.log("a", response?.data);
       setCurrentPage(response?.current_page ?? 1);
       setTotalPages(response?.last_page ?? 1);
     } catch {
@@ -78,10 +79,10 @@ export default function ExamDashboard() {
       <div className="max-w-6xl mx-auto">
         <header className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               Exam Management
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-md text-gray-600">
               Create and manage your exams and questions
             </p>
           </div>
@@ -121,6 +122,7 @@ export default function ExamDashboard() {
                   publish={exam.published}
                   exam_type={exam.exam_type}
                   exam_name={exam.exam_name}
+                  category_type={exam.category_type}
                   total_questions={exam.total_questions}
                   hasQuestions={exam.hasQuestions}
                   description={exam.description}
@@ -128,6 +130,7 @@ export default function ExamDashboard() {
                   live={exam.live}
                   onUploadQuestions={handleUploadQuestions}
                   onDelete={handleDeleteExam}
+                  onUpdated={fetchExams}
                 />
               ))}
             </div>

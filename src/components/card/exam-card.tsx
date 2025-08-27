@@ -19,6 +19,11 @@ interface ExamType {
   name: string;
 }
 
+interface CategoryType {
+    id: number;
+    name: string;
+}
+
 interface ExamCardProps {
     id: number;
     // published: 0 | 1 | null;
@@ -29,11 +34,13 @@ interface ExamCardProps {
     onUploadQuestions: (examId: string | number) => void;
     description?: string;
     exam_type_id?: number;
-    category_type?: number;
+    category_type?: CategoryType;
+    category_type_id?: number;
     onDelete?: (examId: number) => Promise<void>;
     publish: boolean;
     assign: boolean;
     live: boolean;
+    onUpdated?: () => void;
 }
 
 export function ExamCard({
@@ -50,6 +57,7 @@ export function ExamCard({
   assign, 
   live,
   onDelete,
+  onUpdated,
 }: ExamCardProps) {
   const isPublished = publish;
   const [ deleteOpen , setDeleteOpen] = useState(false)
@@ -60,12 +68,12 @@ export function ExamCard({
     exam_name,
     description,
     exam_type_id: exam_type_id ?? exam_type.id,
-    category_type,
+    category_type: category_type?.id ?? 1,
+    // category_type,
     publish,
     assign: assign,
     live: live,
   };
-//   console.log("Exam Card Data:", examData);
 
   return (
     <div>
@@ -122,7 +130,11 @@ export function ExamCard({
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Category:</span>
-                <span>{category_type || exam_type.name}</span>
+                <span>{category_type?.name}</span>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Exam Type:</span>
+                <span>{exam_type.name}</span>
             </div>
             <div className="flex justify-between text-xs">
                 <span>Questions:</span>
@@ -159,6 +171,7 @@ export function ExamCard({
             onClose={() => setOpenUpdate(false)}
             mode="update"
             initialData={examData}
+            onSuccess={onUpdated}
         />
 
         <DeleteDialog
