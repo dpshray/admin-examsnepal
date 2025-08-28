@@ -125,7 +125,7 @@ export default function ExamDashboard() {
                   exam_name={exam.exam_name}
                   category_type={exam.category_type}
                   total_questions={exam.total_questions}
-                  hasQuestions={exam.hasQuestions}
+                  hasQuestions={exam.total_questions > 0}
                   description={exam.description}
                   assign={exam.assign}
                   live={exam.live}
