@@ -57,11 +57,11 @@ class ExamService extends HttpService {
         }
     }
 
-    async getExamById(id: string) {
+    async getExamById(id: string, page: number = 1) {
         try {
             const response = await this.getRequest({
                 // teacher/exam/1/question
-                url: `teacher/exam/${id}/question`,
+                url: `teacher/exam/${id}/question?page=${page}`,
                 config: {
                     auth: true,
                 }

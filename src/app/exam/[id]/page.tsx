@@ -102,6 +102,7 @@ export default function ExamQuestionsPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState<any>(null);
 
   const {
     register,
@@ -118,28 +119,34 @@ export default function ExamQuestionsPage() {
   const watchedValues = watch();
   const correctAnswer = watch("correctAnswer") || "";
 
-  const fetchExamData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await examService.getExamById(examId);
-      console.log("Fetched exam data:", response);
-      setExam(response?.exam ?? null);
-      setQuestions(response?.questions?.data ?? []);
-      setCurrentPage(response?.questions?.current_page ?? 1);
-      setTotalPages(response?.questions?.last_page ?? 1);
-    } catch (error) {
-      console.error("Error fetching exam data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [examId]);
+  const fetchExamData = useCallback(
+    async (page = 1) => {
+      setIsLoading(true);
+      try {
+        const response = await examService.getExamById(examId, page);
+        console.log("Fetched exam data:", response);
+        setTotal(response?.questions?.total ?? 0);
+        setExam(response?.exam ?? null);
+        setQuestions(response?.questions?.data ?? []);
+        setCurrentPage(response?.questions?.current_page ?? 1);
+        setTotalPages(response?.questions?.last_page ?? 1);
+      } catch (error) {
+        console.error("Error fetching exam data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [examId]
+  );
+
   const handlePageChange = async (page: number) => {
     setCurrentPage(page);
-    await fetchExamData();
+    await fetchExamData(page);
   };
+
   useEffect(() => {
-    fetchExamData();
-  }, [fetchExamData]);
+    fetchExamData(currentPage);
+  }, [fetchExamData, currentPage]);
 
   const handleGoBack = () => {
     router.back();
@@ -238,6 +245,8 @@ export default function ExamQuestionsPage() {
     );
   }
 
+  console.log("Exam data:", exam?.description);
+
   if (!exam) {
     return (
       <main className="min-h-screen w-full bg-gray-50 p-6">
@@ -266,35 +275,38 @@ export default function ExamQuestionsPage() {
           Back to Exams
         </Button>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 capitalize">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 capitalize">
               {exam.exam_name}
             </h1>
-            <p className="text-gray-600 mb-4">{exam.description}</p>
-            <div className="flex items-center gap-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
+              {exam.description}
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
               <Badge variant={exam.is_active ? "default" : "secondary"}>
                 {exam.is_active ? "Active" : "Inactive"}
               </Badge>
               <Badge variant="outline">{exam.exam_type.name}</Badge>
               <span className="text-sm text-gray-500">
-                {questions.length} question{questions.length !== 1 ? "s" : ""}
+                {/* {questions.length} question{questions.length !== 1 ? "s" : ""} */}
+                {total} question{total !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               onClick={handleUploadQuestions}
               variant="outline"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 justify-center"
             >
               <Upload className="w-4 h-4" />
               Upload Questions
             </Button>
             <Button
               onClick={handleAddQuestion}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 justify-center"
             >
               <Plus className="w-4 h-4" />
               Add Question
@@ -329,10 +341,10 @@ export default function ExamQuestionsPage() {
                   disabled={isSubmitting}
                 />
                 {errors.question && (
-                    <p className="text-sm text-red-500">
-                      {errors.question.message}
-                    </p>
-                  )}
+                  <p className="text-sm text-red-500">
+                    {errors.question.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -401,46 +413,46 @@ export default function ExamQuestionsPage() {
                     disabled={isSubmitting}
                   >
                     {OPTIONS.map(({ value, label }) => {
-                        const key = `option${value}` as keyof QuestionFormData;
-                        const displayValue =
-                            typeof watchedValues[key] === "string"
-                            ? watchedValues[key]
-                            : "";
-                        const isSelected = correctAnswer === value;
+                      const key = `option${value}` as keyof QuestionFormData;
+                      const displayValue =
+                        typeof watchedValues[key] === "string"
+                          ? watchedValues[key]
+                          : "";
+                      const isSelected = correctAnswer === value;
 
-                        return (
-                            <div
-                            key={value}
-                            className={`p-3 rounded flex justify-between items-center transition-colors
+                      return (
+                        <div
+                          key={value}
+                          className={`p-3 rounded flex justify-between items-center transition-colors
                                 ${
-                                isSelected
+                                  isSelected
                                     ? "border-2 border-green-500 bg-green-50"
                                     : "border border-gray-300 hover:border-gray-400"
                                 }`}
-                            >
-                            <div className="flex items-center gap-2">
-                                <RadioGroupItem value={value} />
-                                <Label
-                                className={`${
-                                    isSelected
-                                    ? "text-green-700 font-medium"
-                                    : "text-gray-700"
-                                }`}
-                                >
-                                {label}
-                                </Label>
-                            </div>
-                            <span
-                                className={`text-sm ${
+                        >
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value={value} />
+                            <Label
+                              className={`${
                                 isSelected
-                                    ? "text-green-600 font-medium"
-                                    : "text-gray-500"
-                                }`}
+                                  ? "text-green-700 font-medium"
+                                  : "text-gray-700"
+                              }`}
                             >
-                                {displayValue}
-                            </span>
-                            </div>
-                        );
+                              {label}
+                            </Label>
+                          </div>
+                          <span
+                            className={`text-sm ${
+                              isSelected
+                                ? "text-green-600 font-medium"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {displayValue}
+                          </span>
+                        </div>
+                      );
                     })}
                   </RadioGroup>
                   {errors.correctAnswer && (
