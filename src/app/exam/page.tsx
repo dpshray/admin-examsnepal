@@ -21,7 +21,7 @@ export default function ExamDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchExams = useCallback(async () => {
+  const fetchExams = useCallback(async (page = 1) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -29,7 +29,7 @@ export default function ExamDashboard() {
         page: currentPage,
         per_page: 12,
       };
-      const response = await examService.getAllExams(params);
+      const response = await examService.getAllExams(params, page);
       setExams(response?.data ?? []);
       console.log("a", response?.data);
       setCurrentPage(response?.current_page ?? 1);
@@ -42,11 +42,12 @@ export default function ExamDashboard() {
   }, [currentPage]);
 
   useEffect(() => {
-    fetchExams();
-  }, [fetchExams]);
+    fetchExams(currentPage);
+  }, [fetchExams, currentPage]);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = async (page: number) => {
     setCurrentPage(page);
+    await fetchExams(page);
   };
 
   const openExamModal = () => {
