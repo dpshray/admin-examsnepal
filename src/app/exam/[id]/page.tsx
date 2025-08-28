@@ -203,11 +203,11 @@ export default function ExamQuestionsPage() {
         formData.append("image", data.questionImage);
       }
 
-      // const response = await examService.uploadQuestion(
-      //   Number(exam.id),
-      //   formData
-      // );
-      // console.log(" Response add question:", response);
+      const response = await examService.uploadQuestion(
+        Number(exam.id),
+        formData
+      );
+      console.log(" Response add question:", response);
       await fetchExamData();
       setShowAddForm(false);
       reset();
