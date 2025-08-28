@@ -196,11 +196,11 @@ export default function ExamQuestionsPage() {
         formData.append("image", data.questionImage);
       }
 
-      const response = await examService.uploadQuestion(
-        Number(exam.id),
-        formData
-      );
-      console.log(" Response add question:", response);
+      // const response = await examService.uploadQuestion(
+      //   Number(exam.id),
+      //   formData
+      // );
+      // console.log(" Response add question:", response);
       await fetchExamData();
       setShowAddForm(false);
       reset();
@@ -318,13 +318,22 @@ export default function ExamQuestionsPage() {
               className="space-y-6"
               noValidate
             >
-              <TextInputField
-                label="Question"
-                placeholder="Enter your question (minimum 10 characters)"
-                {...register("question")}
-                error={errors.question?.message}
-                disabled={isSubmitting}
-              />
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Question</Label>
+                <Textarea
+                  placeholder="Enter your question (minimum 10 characters)"
+                  {...register("question")}
+                  rows={4}
+                  // error={errors.question?.message}
+                  className={errors.question ? "border-red-500" : ""}
+                  disabled={isSubmitting}
+                />
+                {errors.question && (
+                    <p className="text-sm text-red-500">
+                      {errors.question.message}
+                    </p>
+                  )}
+              </div>
 
               <div className="space-y-4">
                 <Label className="text-sm font-medium">

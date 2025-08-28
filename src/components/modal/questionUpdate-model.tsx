@@ -117,19 +117,31 @@ export default function UpdateQuestionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Update Question</DialogTitle>
         </DialogHeader>
 
         {question && (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <TextInputField
-              label="Question"
+            <div className="space-y-2">
+              <Label>Question</Label>
+              <Textarea
+                {...register("question")}
+                placeholder="Enter your question"
+                rows={4}
+                className={errors.question ? "border-red-500" : ""}
+              />
+              {errors.question && (
+                <p className="text-sm text-red-500">
+                  {errors.question.message}
+                </p>
+              )}
+            </div>
+            {/* <TextInputField
               placeholder="Enter your question"
-              {...register("question")}
               error={errors.question?.message}
-            />
+            /> */}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
