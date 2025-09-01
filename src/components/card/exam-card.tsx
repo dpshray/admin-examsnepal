@@ -136,11 +136,15 @@ export function ExamCard({
               <span>Exam Type:</span>
               <span>{exam_type.name}</span>
             </div>
-            <div className="flex justify-between text-xs">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>Questions:</span>
               <Badge variant={hasQuestions ? "default" : "outline"}>
                 {hasQuestions ? "Available" : "None"}
               </Badge>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Total Question:</span>
+              <span>{total_questions}</span>
             </div>
           </div>
         </CardContent>
