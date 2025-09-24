@@ -79,11 +79,12 @@ export function ExamCard({
     <div>
       <Card className="flex flex-col h-full">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-            <CardTitle className="text-lg font-semibold line-clamp-2">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <CardTitle className="text-lg font-semibold line-clamp-2 break-words max-w-[150px]">
               {exam_name}
             </CardTitle>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
               {isPublished ? (
                 <Badge
                   variant="default"
@@ -98,7 +99,8 @@ export function ExamCard({
                   Draft
                 </Badge>
               )}
-              <div className="flex">
+
+              <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -116,6 +118,7 @@ export function ExamCard({
               </div>
             </div>
           </div>
+
         </CardHeader>
 
         <CardContent className="flex-1 overflow-auto">

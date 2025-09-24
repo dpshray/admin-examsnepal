@@ -2,11 +2,11 @@
 import type React from "react"
 import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar"
 import {Separator} from "@/components/ui/separator"
-import {Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator} from "@/components/ui/breadcrumb"
+import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb"
 import AppSidebar, { NavGroup } from "./AppSidebar"
 import UserDropdown, { DropdownGroup } from "./UserDropdown"
 import NotificationComponent, { NotificationItem } from "./notification"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 interface User {
     name: string
     email: string

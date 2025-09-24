@@ -36,20 +36,20 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function ReusableDataTable<TData, TValue>({
-                                                     columns,
-                                                     data,
-                                                     currentPage,
-                                                     totalItems,
-                                                     pageSize,
-                                                     onPageChangeAction,
-                                                     onPageSizeChange,
-                                                     loading = false,
-                                                     className,
-                                                     pageSizeOptions = [5, 10, 20],
-                                                     noDataText = "No results found.",
-                                                     tableClassName = "",
-                                                     defaultSort = [],
-                                                 }: DataTableProps<TData, TValue>) {
+    columns,
+    data,
+    currentPage,
+    totalItems,
+    pageSize,
+    onPageChangeAction,
+    onPageSizeChange,
+    loading = false,
+    className,
+    pageSizeOptions = [5, 10, 20],
+    noDataText = "No results found.",
+    tableClassName = "",
+    defaultSort = [],
+}: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>(
         defaultSort ?? []
     )
