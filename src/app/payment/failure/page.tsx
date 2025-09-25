@@ -1,18 +1,17 @@
 "use client"
 
-import { ArrowLeft, HelpCircle, RefreshCw, XCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import Link from "next/link"
+// import { ArrowLeft, HelpCircle, RefreshCw, XCircle } from "lucide-react"
+// import { Button } from "@/components/ui/button"
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Badge } from "@/components/ui/badge"
+// import { Alert, AlertDescription } from "@/components/ui/alert"
+// import Link from "next/link"
 import PaymentFailureCard from "@/components/card/payment-failure"
 
 export default function PaymentFailurePage() {
-    const handleRetryPayment = () => {
-        // Redirect to payment page or retry logic
-        window.location.href = "/payment"
-    }
+    // const handleRetryPayment = () => {
+    //     window.location.href = "/payment"
+    // }
 
     return (
         // <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-50 flex items-center justify-center p-4">

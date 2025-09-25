@@ -26,7 +26,7 @@ class StudentService extends HttpService {
             url: `/subscribe-student/${studentEmail}`,
             data: payload,
             config: { auth: true }
-        });
+        }); 
         return response;
     } catch (err) {
         console.error("Error subscribing student:", err);

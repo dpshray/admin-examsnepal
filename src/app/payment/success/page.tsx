@@ -1,8 +1,8 @@
-import { CheckCircle, ArrowRight, Download, Home } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
+// import { CheckCircle, ArrowRight, Download, Home } from "lucide-react"
+// import { Button } from "@/components/ui/button"
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Badge } from "@/components/ui/badge"
+// import Link from "next/link"
 import PaymentSuccessCard from "@/components/card/payment-success"
 
 export default function PaymentSuccessPage() {

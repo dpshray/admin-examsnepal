@@ -6,6 +6,8 @@ import { ReusableDataTable } from "@/components/table/ReusableDataTable"
 import { studentService } from "@/service/student.service"
 import { Button } from "@/components/ui/button"
 import SubscriptionDialog from "@/components/modal/SubscriptionDialog"
+import { format } from "date-fns"
+import { Badge } from "@/components/ui/badge"
 
 interface Student {
   name: string;
@@ -87,6 +89,13 @@ export default function StudentsPage() {
     {
         accessorKey: "exam_type",
         header: "Exam Type",
+        cell: ({ getValue }) => {
+            const val = getValue<number | null>();
+            return (
+                val ??
+                 <div className="text-center text-3xl">-</div>
+            )
+        },
     },
     {
         accessorKey: "registered_date",
@@ -95,14 +104,35 @@ export default function StudentsPage() {
     {
         accessorKey: "is_subscripted",
         header: "Subscription Status",
+        cell: ({ getValue }) => {
+            const val = (getValue<string>() || "").toLowerCase();
+
+            const isActive = val.includes("subscribed") && !val.includes("not");
+
+            return (
+            <Badge variant={isActive ? "green" : "destructive"}>
+                {getValue<string>()}
+            </Badge>
+            );
+        },
     },
     {
         accessorKey: "subscription_start_date",
         header: "Subscription Start Date",
+        cell: ({ getValue }) => {
+            const val = getValue<string | null>();
+            if (!val) return <div className="text-center text-3xl">-</div>;
+            return format(new Date(val), "dd MMM yyyy, hh:mm a");
+        },
     },
     {
         accessorKey: "subscription_end_date",
         header: "Subscription End Date",
+        cell: ({ getValue }) => {
+            const val = getValue<string | null>();
+            if (!val) return <div className="text-center text-3xl">-</div>;
+            return format(new Date(val), "dd MMM yyyy, hh:mm a");
+        },
     },
     {
         id: "actions",
