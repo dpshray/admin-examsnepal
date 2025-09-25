@@ -8,7 +8,7 @@ import {
     SortingState,
     useReactTable,
 } from "@tanstack/react-table"
-import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon,} from "lucide-react"
+import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon, ChevronUpIcon,} from "lucide-react"
 import {useState} from "react"
 
 import {cn} from "@/lib/utils"
@@ -164,6 +164,17 @@ export function ReusableDataTable<TData, TValue>({
                                 <Button
                                     size="icon"
                                     variant="outline"
+                                    onClick={() => onPageChangeAction?.(1)}
+                                    disabled={currentPage! === 1}
+                                >
+                                    <ChevronsLeftIcon size={16} />
+                                </Button>
+                            </PaginationItem>
+
+                            <PaginationItem>
+                                <Button
+                                    size="icon"
+                                    variant="outline"
                                     onClick={() => onPageChangeAction?.(currentPage! - 1)}
                                     disabled={currentPage! <= 1}
                                 >
@@ -204,6 +215,17 @@ export function ReusableDataTable<TData, TValue>({
                                     disabled={currentPage! >= totalPages}
                                 >
                                     <ChevronRightIcon size={16}/>
+                                </Button>
+                            </PaginationItem>
+
+                            <PaginationItem>
+                                <Button
+                                    size="icon"
+                                    variant="outline"
+                                    onClick={() => onPageChangeAction?.(totalPages)}
+                                    disabled={currentPage! === totalPages}
+                                >
+                                    <ChevronsRightIcon size={16} />
                                 </Button>
                             </PaginationItem>
                         </PaginationContent>

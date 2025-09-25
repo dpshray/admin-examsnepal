@@ -9,7 +9,6 @@ import {
   User,
   FileText,
   Users,
-  CreditCard,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -28,11 +27,11 @@ const navGroups: NavGroup[] = [
         href: "/students",
         icon: Users,
       },
-      {
-        label: "Subscriptions",
-        href: "/subscriptions",
-        icon: CreditCard,
-      },
+      // {
+      //   label: "Subscriptions",
+      //   href: "/subscriptions",
+      //   icon: CreditCard,
+      // },
     ],
   },
 ];

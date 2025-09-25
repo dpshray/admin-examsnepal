@@ -20,18 +20,31 @@ class StudentService extends HttpService {
         }
     }
 
-    async subscribeStudent(studentEmail: string, payload: { start_date: string; end_date: string; remark?: string }) {
-    try {
-        const response = await this.postRequest({
-            url: `/subscribe-student/${studentEmail}`,
-            data: payload,
-            config: { auth: true }
-        }); 
-        return response;
-    } catch (err) {
-        console.error("Error subscribing student:", err);
-        throw err;
+    async subscribeStudent(studentId: number, payload: { subscription_type_id: number; remark?: string }) {
+        try {
+            const response = await this.postRequest({
+                url: `/add-subscriber/${studentId}`,
+                data: payload,
+                config: { auth: true }
+            }); 
+            return response;
+        } catch (err) {
+            console.error("Error subscribing student:", err);
+            throw err;
+        }
     }
+
+    async subscriptionType(studentId: number) {
+        try {
+            const response = await this.getRequest({
+                url: `/subtype/${studentId}`,
+                config: { auth: true }
+            });
+            return response;
+        } catch (err) {
+            console.error("Error fetching subscription types:", err);
+            throw err;
+        }
     }
 
 }

@@ -10,14 +10,15 @@ import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 
 interface Student {
-  name: string;
-  email: string;
-  phone: string;
-  exam_type: number;
-  registered_date: string | null;
-  is_subscripted: number;
-  subscription_start_date: string | null;
-  subscription_end_date: string | null;
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    exam_type: number;
+    registered_date: string | null;
+    is_subscripted: number;
+    subscription_start_date: string | null;
+    subscription_end_date: string | null;
 }
 
 export default function StudentsPage() {
@@ -85,16 +86,18 @@ export default function StudentsPage() {
     {
         accessorKey: "phone",
         header: "Phone",
+        enableSorting: false
     },
     {
         accessorKey: "exam_type",
         header: "Exam Type",
         cell: ({ getValue }) => {
             const val = getValue<number | null>();
-            return (
-                val ??
-                 <div className="text-center text-3xl">-</div>
-            )
+            return val ? (
+                <div className="max-w-[150px] break-words whitespace-normal">{val}</div> 
+            ) : (
+                <div className="text-center text-3xl">-</div> 
+            );
         },
     },
     {
@@ -132,6 +135,19 @@ export default function StudentsPage() {
             const val = getValue<string | null>();
             if (!val) return <div className="text-center text-3xl">-</div>;
             return format(new Date(val), "dd MMM yyyy, hh:mm a");
+        },
+    },
+    {
+        accessorKey: "remark",
+        header: "Remark",
+        enableSorting: false,
+        cell: ({ getValue }) => {
+            const val = getValue<string | null>();
+            return val ? (
+            <div className="max-w-[200px] break-words whitespace-normal">{val}</div> 
+            ) : (
+            <div className="text-center text-3xl">-</div> 
+            );
         },
     },
     {
