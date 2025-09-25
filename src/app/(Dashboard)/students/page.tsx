@@ -29,14 +29,14 @@ export default function StudentsPage() {
     const [totalItems, setTotalItems] = useState(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [searchTerm, setSearchTerm] = useState("")
 
     const fetchStudents = useCallback(
-        async (page: number = 1, size: number = pageSize) => {
+        async (page: number = 1, size: number = pageSize, search: string = searchTerm) => {
             setLoading(true);
             try {
-                const params = { limit: size }; 
+                const params = { limit: size, search }; 
                 const res = await studentService.getAllStudents(params, page);
-                console.log("Response:", res);
 
                 const studentsData = res?.students?.data ?? [];
                 const currentPage = res?.students?.current_page ?? page;
@@ -53,12 +53,12 @@ export default function StudentsPage() {
                 setLoading(false);
             }
         },
-        [pageSize]
+        [pageSize, searchTerm]
     );
 
     useEffect(() => {
-        fetchStudents(currentPage, pageSize)
-    }, [currentPage, pageSize, fetchStudents])
+        fetchStudents(currentPage, pageSize, searchTerm)
+    }, [currentPage, pageSize, searchTerm, fetchStudents])
 
     const openSubscriptionModal = (student: Student) => {
         setSelectedStudent(student);
@@ -78,6 +78,14 @@ export default function StudentsPage() {
     {
         accessorKey: "name",
         header: "Name",
+        cell: ({ getValue }) => {
+            const val = getValue<string>();
+            return val ? (
+                <div className="max-w-[150px] break-words whitespace-normal">{val}</div> 
+            ) : (
+                <div className="text-center text-3xl">-</div> 
+            );
+        }
     },
     {
         accessorKey: "email",
@@ -176,13 +184,18 @@ export default function StudentsPage() {
                 loading={loading}
                 onPageChangeAction={(page: any) => setCurrentPage(page)}
                 onPageSizeChange={(size: any) => setPageSize(size)}
+                onSearchAction={(val) => {
+                    setSearchTerm(val)    
+                    setCurrentPage(1)     
+                }}
+                searchPlaceholder="Search students by name..."
             />
             
             <SubscriptionDialog
                 student={selectedStudent}
                 isOpen={isModalOpen}
                 onClose={closeSubscriptionModal}
-                onSuccess={() => fetchStudents(currentPage, pageSize)}
+                onSuccess={() => fetchStudents(currentPage, pageSize, searchTerm)}
             />
         </div>
     )

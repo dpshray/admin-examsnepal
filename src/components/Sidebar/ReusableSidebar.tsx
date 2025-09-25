@@ -5,7 +5,7 @@ import {Separator} from "@/components/ui/separator"
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb"
 import AppSidebar, { NavGroup } from "./AppSidebar"
 import UserDropdown, { DropdownGroup } from "./UserDropdown"
-import NotificationComponent, { NotificationItem } from "./notification"
+import { NotificationItem } from "./notification"
 import { usePathname } from "next/navigation"
 interface User {
     name: string
@@ -47,7 +47,6 @@ export default function ReusableSidebar({
         fallback: "EN",
     },
     dropdownGroups = [],
-    notifications = [],
     onLogout,
 }: ReusableSidebarProps) {
     const pathname = usePathname();
@@ -68,7 +67,7 @@ export default function ReusableSidebar({
                         </BreadcrumbList>
                     </Breadcrumb>
                     <div className="ml-auto flex items-center gap-1 sm:gap-2">
-                        <NotificationComponent notifications={notifications}/>
+                        {/* <NotificationComponent notifications={notifications}/> */}
                         <UserDropdown user={user} groups={dropdownGroups} onLogoutAction={onLogout}/>
                     </div>
                 </header>
