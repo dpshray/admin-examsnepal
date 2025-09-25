@@ -43,7 +43,6 @@ export default function StudentsPage() {
 
                 setStudents(studentsData);
                 setTotalItems(totalItems);
-                console.log('Fetching', page, size, search)
             } catch (err) {
                 console.error(err);
             } finally {
@@ -191,7 +190,7 @@ export default function StudentsPage() {
                     setSearchTerm(val)
                     if (val !== searchTerm) setCurrentPage(1)
                 }}
-                searchPlaceholder="Search students by name..."
+                searchPlaceholder="Search students by email..."
             />
             
             <SubscriptionDialog
