@@ -8,8 +8,8 @@ import {
     SortingState,
     useReactTable,
 } from "@tanstack/react-table"
-import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon, ChevronUpIcon,} from "lucide-react"
-import {useState} from "react"
+import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon, ChevronUpIcon, CircleX, Search,} from "lucide-react"
+import {useEffect, useId, useRef, useState} from "react"
 
 import {cn} from "@/lib/utils"
 import {usePagination} from "@/hooks/use-pagination"
@@ -18,6 +18,8 @@ import {Skeleton} from "@/components/ui/skeleton"
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table"
 import {Pagination, PaginationContent, PaginationEllipsis, PaginationItem,} from "@/components/ui/pagination"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select"
+import { useDebounce } from "@/hooks/use-Debounce"
+import { Input } from "../ui/input"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -33,6 +35,9 @@ interface DataTableProps<TData, TValue> {
     noDataText?: string
     tableClassName?: string
     defaultSort?: SortingState
+    onSearchAction?: (value: string) => void
+    searchPlaceholder?: string
+    enableSearch?: boolean
 }
 
 export function ReusableDataTable<TData, TValue>({
@@ -45,6 +50,9 @@ export function ReusableDataTable<TData, TValue>({
     onPageSizeChange,
     loading = false,
     className,
+    searchPlaceholder = "Search...",
+    enableSearch = true,
+    onSearchAction,
     pageSizeOptions = [5, 10, 20],
     noDataText = "No results found.",
     tableClassName = "",
@@ -53,6 +61,16 @@ export function ReusableDataTable<TData, TValue>({
     const [sorting, setSorting] = useState<SortingState>(
         defaultSort ?? []
     )
+    const [search, setSearch] = useState("")
+    const debouncedSearch = useDebounce(search, 500)
+    const id = useId()
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        if (onSearchAction) {
+            onSearchAction(debouncedSearch)
+        }
+    }, [debouncedSearch, onSearchAction])
 
 
     const enablePagination =
@@ -80,8 +98,48 @@ export function ReusableDataTable<TData, TValue>({
         getSortedRowModel: getSortedRowModel(),
     })
 
+    const clearSearch = () => {
+        setSearch("")
+        inputRef.current?.focus()
+    }
+
+    const hasSearch = Boolean(search)
+
     return (
         <div className={cn("flex flex-col gap-4")}>
+            {enableSearch && (
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative">
+                        <Input
+                        id={`${id}-search`}
+                        ref={inputRef}
+                        className={cn("max-w-sm pl-9 sm:min-w-60")}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder={searchPlaceholder}
+                        type="text"
+                        aria-label="Search table"
+                        />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-muted-foreground">
+                        <Search size={16} aria-hidden="true" />
+                        </div>
+                    </div>
+
+                    {hasSearch && (
+                        <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={clearSearch}
+                        aria-label="Clear search"
+                        className="shrink-0"
+                        >
+                        <CircleX size={16} />
+                        </Button>
+                    )}
+                </div>
+
+            )}
+            
             <div className={cn('overflow-x-auto ', className)}>
                 <Table className={cn('table-auto text-left border-none', tableClassName)}>
                     <TableHeader className={''}>
