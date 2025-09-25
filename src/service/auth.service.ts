@@ -18,7 +18,8 @@ class AuthService extends HttpServices {
     async logout() {
         try {
             const response = await this.postRequest({
-                url: "/teacher/logout",
+                url: "/logout",
+                config: { auth: true }
             })
             return response?.data
         } catch (error) {

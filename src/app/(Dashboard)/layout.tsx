@@ -4,7 +4,6 @@ import type React from "react";
 import ReusableSidebar from "@/components/Sidebar/ReusableSidebar";
 import { NavGroup } from "@/components/Sidebar/AppSidebar";
 import { DropdownGroup } from "@/components/Sidebar/UserDropdown";
-import { NotificationItem } from "@/components/Sidebar/notification";
 import {
   User,
   FileText,
@@ -12,6 +11,7 @@ import {
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
+import { toast } from "sonner";
 
 const navGroups: NavGroup[] = [
   {
@@ -42,30 +42,30 @@ const dropdownGroups: DropdownGroup[] = [
       {
         icon: User,
         label: "Profile",
-        href: "/profile",
+        href: "#",
       }
     ],
   },
 ];
 
-const notifications: NotificationItem[] = [
-  {
-    id: 1,
-    user: "Alice",
-    action: "placed an order",
-    target: "#1234",
-    timestamp: "2025-09-24T10:15:00Z",
-    unread: true,
-  },
-  {
-    id: 2,
-    user: "Bob",
-    action: "updated product",
-    target: "Headphones",
-    timestamp: "2025-09-23T18:30:00Z",
-    unread: false,
-  },
-];
+// const notifications: NotificationItem[] = [
+//   {
+//     id: 1,
+//     user: "Alice",
+//     action: "placed an order",
+//     target: "#1234",
+//     timestamp: "2025-09-24T10:15:00Z",
+//     unread: true,
+//   },
+//   {
+//     id: 2,
+//     user: "Bob",
+//     action: "updated product",
+//     target: "Headphones",
+//     timestamp: "2025-09-23T18:30:00Z",
+//     unread: false,
+//   },
+// ];
 
 export default function DashboardLayout({
   children,
@@ -80,12 +80,14 @@ export default function DashboardLayout({
       currentHref="/dashboard"
       logo={<Image src="/logo.svg" alt="Logo" width={32} height={32} />}
       dropdownGroups={dropdownGroups}
-      notifications={notifications}
+      // notifications={notifications}
       onLogout={() => {
         try {
             authService.logout()
+            toast.success("Logged out successfully")
             window.location.href = "/"
         } catch (error) {
+            toast.error("Logout failed: an unexpected error occurred")
             console.error("Logout failed:", error)
         }
     }}
