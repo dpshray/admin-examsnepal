@@ -39,14 +39,11 @@ export default function StudentsPage() {
                 const res = await studentService.getAllStudents(params, page);
 
                 const studentsData = res?.students?.data ?? [];
-                const currentPage = res?.students?.current_page ?? page;
                 const totalItems = res?.students?.total ?? 0;
-                const perPage = size; 
 
                 setStudents(studentsData);
-                setCurrentPage(currentPage);
                 setTotalItems(totalItems);
-                setPageSize(perPage);
+                console.log('Fetching', page, size, search)
             } catch (err) {
                 console.error(err);
             } finally {
@@ -55,6 +52,12 @@ export default function StudentsPage() {
         },
         [pageSize, searchTerm]
     );
+
+    useEffect(() => {
+  console.log('currentPage changed', currentPage)
+}, [currentPage])
+
+
 
     useEffect(() => {
         fetchStudents(currentPage, pageSize, searchTerm)
@@ -182,11 +185,11 @@ export default function StudentsPage() {
                 totalItems={totalItems}
                 pageSize={pageSize}
                 loading={loading}
-                onPageChangeAction={(page: any) => setCurrentPage(page)}
-                onPageSizeChange={(size: any) => setPageSize(size)}
+                onPageChangeAction={(page: number) => setCurrentPage(page)}
+                onPageSizeChange={(size: number) => setPageSize(size)}
                 onSearchAction={(val) => {
-                    setSearchTerm(val)    
-                    setCurrentPage(1)     
+                    setSearchTerm(val)
+                    if (val !== searchTerm) setCurrentPage(1)
                 }}
                 searchPlaceholder="Search students by name..."
             />
