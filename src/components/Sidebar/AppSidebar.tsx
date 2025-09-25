@@ -46,7 +46,7 @@ function SidebarNavGroup({group}: { group: NavGroup; currentHref?: string }) {
                     {group.items.map((item) => (
                         <SidebarMenuItem key={item.href}>
                             <SidebarMenuButton asChild
-                                               className={cn(pathname === item.href ? "bg-gradient-to-r from-purple-400 to-blue-400 text-primary-foreground hover:text-white" : "")}>
+                                               className={cn(pathname === item.href ? "bg-gradient-to-l from-green-400 to-green-600 !text-white" : "")}>
                                 <Link href={item.href} className="flex items-center gap-2 truncate">
                                     <item.icon className="h-4 w-4 flex-shrink-0"/>
                                     <span className="truncate">{item.label}</span>
