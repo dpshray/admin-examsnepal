@@ -62,6 +62,11 @@ export default function SubscriptionDialog({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!student) return
+    if (!selectedType) {
+      toast.error("Please select a subscription type");
+      return;
+    }
+
 
     setLoading(true)
     setError(null)
@@ -109,6 +114,8 @@ export default function SubscriptionDialog({
                   label="Remark"
                   className="w-full p-2"
                   textarea
+                  placeholder="Enter remark"
+                  required
               />
 
               <div className="mt-4 flex justify-end gap-2">
