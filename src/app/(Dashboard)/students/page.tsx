@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import SubscriptionDialog from "@/components/modal/SubscriptionDialog"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
+import { examService } from "@/service/exam.service"
 
 interface Student {
     id: number;
@@ -30,12 +31,18 @@ export default function StudentsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [searchTerm, setSearchTerm] = useState("")
+    const [examTypes, setExamTypes] = useState<{ value: string; label: string }[]>([])
+    const [selectedExamType, setSelectedExamType] = useState<string>("");
 
     const fetchStudents = useCallback(
-        async (page: number = 1, size: number = pageSize, search: string = searchTerm) => {
+        async (page: number = 1, size: number = pageSize, search: string = searchTerm, examType: string = selectedExamType) => {
             setLoading(true);
             try {
-                const params = { limit: size, search }; 
+                const params: any = { limit: size, search }; 
+                if (examType && examType !== "all") {
+                    params.exam_type = Number(examType);
+                }
+
                 const res = await studentService.getAllStudents(params, page);
 
                 const studentsData = res?.students?.data ?? [];
@@ -49,18 +56,27 @@ export default function StudentsPage() {
                 setLoading(false);
             }
         },
-        [pageSize, searchTerm]
+        [pageSize, searchTerm, selectedExamType]
     );
 
     useEffect(() => {
-  console.log('currentPage changed', currentPage)
-}, [currentPage])
-
-
+        fetchStudents(currentPage, pageSize, searchTerm, selectedExamType)
+    }, [currentPage, pageSize, searchTerm, selectedExamType, fetchStudents])
 
     useEffect(() => {
-        fetchStudents(currentPage, pageSize, searchTerm)
-    }, [currentPage, pageSize, searchTerm, fetchStudents])
+        async function getTypes() {
+            const res = await examService.getExamType()
+            console.log("type", res)
+            setExamTypes(
+            res.map((e: any) => ({
+                value: String(e.id), 
+                label: e.name
+            }))
+            )
+        }
+        getTypes()
+        }, [])
+
 
     const openSubscriptionModal = (student: Student) => {
         setSelectedStudent(student);
@@ -113,6 +129,21 @@ export default function StudentsPage() {
     {
         accessorKey: "registered_date",
         header: "Registered Date",
+    },
+    {
+        accessorKey: "email_verified_at",
+        header: "Email Verified",
+        cell: ({ getValue }) => {
+            const val = (getValue<string>() || "").toLowerCase();
+
+            const isActive = val.includes("verified") && !val.includes("not");
+
+            return (
+            <Badge variant={isActive ? "green" : "destructive"}>
+                {getValue<string>()}
+            </Badge>
+            );
+        },
     },
     {
         accessorKey: "is_subscripted",
@@ -190,6 +221,12 @@ export default function StudentsPage() {
                     setSearchTerm(val)
                     if (val !== searchTerm) setCurrentPage(1)
                 }}
+                examTypeOptions={examTypes}
+                selectedExamType={selectedExamType}
+                onExamTypeChange={(val) => {
+                    setSelectedExamType(val === "all" ? "" : String(val))
+                    setCurrentPage(1); 
+                }}
                 searchPlaceholder="Search students by email..."
             />
             
@@ -197,7 +234,7 @@ export default function StudentsPage() {
                 student={selectedStudent}
                 isOpen={isModalOpen}
                 onClose={closeSubscriptionModal}
-                onSuccess={() => fetchStudents(currentPage, pageSize, searchTerm)}
+                onSuccess={() => fetchStudents(currentPage, pageSize, searchTerm, selectedExamType)}
             />
         </div>
     )
