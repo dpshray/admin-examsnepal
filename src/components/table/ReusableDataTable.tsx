@@ -8,7 +8,7 @@ import {
     SortingState,
     useReactTable,
 } from "@tanstack/react-table"
-import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon, ChevronUpIcon, CircleX, Search,} from "lucide-react"
+import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon, ChevronsUpDown, ChevronUpIcon, CircleX, Search,} from "lucide-react"
 import {useEffect, useId, useRef, useState} from "react"
 
 import {cn} from "@/lib/utils"
@@ -20,6 +20,8 @@ import {Pagination, PaginationContent, PaginationEllipsis, PaginationItem,} from
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select"
 import { useDebounce } from "@/hooks/use-Debounce"
 import { Input } from "../ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -38,6 +40,9 @@ interface DataTableProps<TData, TValue> {
     onSearchAction?: (value: string) => void
     searchPlaceholder?: string
     enableSearch?: boolean
+    examTypeOptions?: { value: string | number; label: string }[]
+    selectedExamType?: string | number
+    onExamTypeChange?: (value: string | number) => void
 }
 
 export function ReusableDataTable<TData, TValue>({
@@ -53,6 +58,9 @@ export function ReusableDataTable<TData, TValue>({
     searchPlaceholder = "Search...",
     enableSearch = true,
     onSearchAction,
+    examTypeOptions,
+    selectedExamType,
+    onExamTypeChange,
     pageSizeOptions = [5, 10, 20],
     noDataText = "No results found.",
     tableClassName = "",
@@ -111,31 +119,80 @@ export function ReusableDataTable<TData, TValue>({
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <div className="relative">
                         <Input
-                        id={`${id}-search`}
-                        ref={inputRef}
-                        className={cn("max-w-sm pl-9 sm:min-w-60")}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder={searchPlaceholder}
-                        type="text"
-                        aria-label="Search table"
+                            id={`${id}-search`}
+                            ref={inputRef}
+                            className={cn("max-w-sm pl-9 sm:min-w-60")}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder={searchPlaceholder}
+                            type="text"
+                            aria-label="Search table"
                         />
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-muted-foreground">
-                        <Search size={16} aria-hidden="true" />
+                            <Search size={16} aria-hidden="true" />
                         </div>
                     </div>
 
                     {hasSearch && (
                         <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={clearSearch}
-                        aria-label="Clear search"
-                        className="shrink-0"
+                            size="sm"
+                            variant="ghost"
+                            onClick={clearSearch}
+                            aria-label="Clear search"
+                            className="shrink-0"
                         >
-                        <CircleX size={16} />
+                            <CircleX size={16} />
                         </Button>
                     )}
+
+                    {examTypeOptions && onExamTypeChange && (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-64 justify-between"
+                                >
+                                    <span className="truncate max-w-[95%]">
+                                        {selectedExamType
+                                            ? examTypeOptions.find((opt) => String(opt.value) === String(selectedExamType))?.label
+                                            : "Filter by Exam Type"
+                                        }
+                                    </span>
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search exam type..." />
+                                    <CommandList>
+                                    <CommandEmpty>No exam types found.</CommandEmpty>
+                                    <CommandGroup>
+                                        <CommandItem
+                                            key="all"
+                                            onSelect={() => {
+                                                onExamTypeChange("all")
+                                            }}
+                                        >
+                                            All
+                                        </CommandItem>
+                                        {examTypeOptions.map((opt) => (
+                                            <CommandItem
+                                                key={opt.value}
+                                                onSelect={() => {
+                                                    onExamTypeChange(String(opt.value))
+                                                }}
+                                            >
+                                                {opt.label}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    )}
+
                 </div>
 
             )}

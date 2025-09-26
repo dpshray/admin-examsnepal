@@ -80,7 +80,7 @@ export function ExamCard({
       <Card className="flex flex-col h-full">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 flex-wrap">
-            <CardTitle className="text-lg font-semibold line-clamp-2 break-words max-w-[150px]">
+            <CardTitle className="text-lg font-semibold line-clamp-2 break-words max-w-[130px]">
               {exam_name}
             </CardTitle>
 
