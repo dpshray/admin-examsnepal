@@ -47,6 +47,25 @@ class StudentService extends HttpService {
         }
     }
 
+    async getAllSubmissions(params: { [key: string]: any } = {}, page: number = 1) {
+        try {
+            const response = await this.getRequest({
+                url: "/submissionslist",
+                config: { 
+                    auth: true,
+                    params: {
+                        ...params,
+                        page,
+                    }
+                }
+            });
+            return response;
+        } catch (err) {
+            console.error("Error fetching submission details:", err);
+            throw err;
+        }
+    }
+
 }
 
 export const studentService = new StudentService()

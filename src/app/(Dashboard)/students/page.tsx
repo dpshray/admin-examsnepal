@@ -66,7 +66,6 @@ export default function StudentsPage() {
     useEffect(() => {
         async function getTypes() {
             const res = await examService.getExamType()
-            console.log("type", res)
             setExamTypes(
             res.map((e: any) => ({
                 value: String(e.id), 
@@ -75,7 +74,7 @@ export default function StudentsPage() {
             )
         }
         getTypes()
-        }, [])
+    }, [])
 
 
     const openSubscriptionModal = (student: Student) => {
@@ -221,12 +220,17 @@ export default function StudentsPage() {
                     setSearchTerm(val)
                     if (val !== searchTerm) setCurrentPage(1)
                 }}
-                examTypeOptions={examTypes}
-                selectedExamType={selectedExamType}
-                onExamTypeChange={(val) => {
-                    setSelectedExamType(val === "all" ? "" : String(val))
-                    setCurrentPage(1); 
-                }}
+                filters={[
+                    {
+                        label: "Exam Type",
+                        options: examTypes,
+                        selectedValue: selectedExamType,
+                        onChange: (val) => {
+                            setSelectedExamType(val === "all" ? "" : String(val));
+                            setCurrentPage(1);
+                        },
+                    },
+                ]}
                 searchPlaceholder="Search students by email..."
             />
             
