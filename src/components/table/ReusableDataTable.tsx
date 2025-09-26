@@ -40,9 +40,18 @@ interface DataTableProps<TData, TValue> {
     onSearchAction?: (value: string) => void
     searchPlaceholder?: string
     enableSearch?: boolean
-    examTypeOptions?: { value: string | number; label: string }[]
-    selectedExamType?: string | number
-    onExamTypeChange?: (value: string | number) => void
+    // examTypeOptions?: { value: string | number; label: string }[]
+    // selectedExamType?: string | number
+    // onExamTypeChange?: (value: string | number) => void
+    filters?: TableFilter[]
+}
+
+interface TableFilter {
+  label: string
+  placeholder?: string
+  options: { value: string | number; label: string }[]
+  selectedValue?: string | number
+  onChange: (value: string | number) => void
 }
 
 export function ReusableDataTable<TData, TValue>({
@@ -58,13 +67,11 @@ export function ReusableDataTable<TData, TValue>({
     searchPlaceholder = "Search...",
     enableSearch = true,
     onSearchAction,
-    examTypeOptions,
-    selectedExamType,
-    onExamTypeChange,
     pageSizeOptions = [5, 10, 20],
     noDataText = "No results found.",
     tableClassName = "",
     defaultSort = [],
+    filters,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>(
         defaultSort ?? []
@@ -116,82 +123,84 @@ export function ReusableDataTable<TData, TValue>({
     return (
         <div className={cn("flex flex-col gap-4")}>
             {enableSearch && (
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative">
-                        <Input
-                            id={`${id}-search`}
-                            ref={inputRef}
-                            className={cn("max-w-sm pl-9 sm:min-w-60")}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder={searchPlaceholder}
-                            type="text"
-                            aria-label="Search table"
-                        />
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-muted-foreground">
-                            <Search size={16} aria-hidden="true" />
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <div className="flex">
+                        <div className="relative">
+                            <Input
+                                id={`${id}-search`}
+                                ref={inputRef}
+                                className={cn("max-w-sm pl-9 sm:min-w-60")}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={searchPlaceholder}
+                                type="text"
+                                aria-label="Search table"
+                            />
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-muted-foreground">
+                                <Search size={16} aria-hidden="true" />
+                            </div>
                         </div>
+
+                        {hasSearch && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={clearSearch}
+                                aria-label="Clear search"
+                                className="shrink-0"
+                            >
+                                <CircleX size={16} />
+                            </Button>
+                        )}
                     </div>
 
-                    {hasSearch && (
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={clearSearch}
-                            aria-label="Clear search"
-                            className="shrink-0"
-                        >
-                            <CircleX size={16} />
-                        </Button>
-                    )}
-
-                    {examTypeOptions && onExamTypeChange && (
-                        <Popover>
+                    {filters?.map((filter, index) => (
+                        <Popover key={index}>
                             <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    className="w-64 justify-between"
-                                >
-                                    <span className="truncate max-w-[95%]">
-                                        {selectedExamType
-                                            ? examTypeOptions.find((opt) => String(opt.value) === String(selectedExamType))?.label
-                                            : "Filter by Exam Type"
-                                        }
-                                    </span>
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-64 justify-between"
+                            >
+                                <span className="truncate max-w-[95%]">
+                                {filter.selectedValue
+                                    ? filter.options.find((opt) => String(opt.value) === String(filter.selectedValue))?.label
+                                    : filter.placeholder ?? filter.label}
+                                </span>
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-64 p-0">
-                                <Command>
-                                    <CommandInput placeholder="Search exam type..." />
-                                    <CommandList>
-                                    <CommandEmpty>No exam types found.</CommandEmpty>
-                                    <CommandGroup>
-                                        <CommandItem
-                                            key="all"
-                                            onSelect={() => {
-                                                onExamTypeChange("all")
-                                            }}
-                                        >
-                                            All
-                                        </CommandItem>
-                                        {examTypeOptions.map((opt) => (
-                                            <CommandItem
-                                                key={opt.value}
-                                                onSelect={() => {
-                                                    onExamTypeChange(String(opt.value))
-                                                }}
-                                            >
-                                                {opt.label}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                    </CommandList>
-                                </Command>
+                            <Command>
+                                <CommandInput placeholder={`Search ${filter.label.toLowerCase()}...`} />
+                                <CommandList>
+                                <CommandEmpty>No {filter.label.toLowerCase()} found.</CommandEmpty>
+                                <CommandGroup>
+                                    <CommandItem
+                                    key="all"
+                                    onSelect={() => {
+                                        filter.onChange("all")
+                                    }}
+                                    >
+                                    All
+                                    </CommandItem>
+                                    {filter.options.map((opt) => (
+                                    <CommandItem
+                                        key={opt.value}
+                                        onSelect={() => {
+                                        filter.onChange(String(opt.value))
+                                        }}
+                                    >
+                                        {opt.label}
+                                    </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                                </CommandList>
+                            </Command>
                             </PopoverContent>
                         </Popover>
-                    )}
+                    ))}
+
 
                 </div>
 
