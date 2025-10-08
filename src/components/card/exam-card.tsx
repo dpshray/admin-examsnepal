@@ -79,12 +79,12 @@ export function ExamCard({
     <div>
       <Card className="flex flex-col h-full">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 flex-wrap">
-            <CardTitle className="text-lg font-semibold line-clamp-2 break-words max-w-[130px]">
+          <div className="flex sm:items-start justify-between gap-3">
+            <CardTitle className="text-lg font-semibold line-clamp-2 break-words max-w-[160px]">
               {exam_name}
             </CardTitle>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-end gap-2 flex-wrap">
               {isPublished ? (
                 <Badge
                   variant="default"

@@ -123,7 +123,7 @@ export function ReusableDataTable<TData, TValue>({
     return (
         <div className={cn("flex flex-col gap-4")}>
             {enableSearch && (
-                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto flex-wrap">
                     <div className="flex">
                         <div className="relative">
                             <Input
