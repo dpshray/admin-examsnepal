@@ -1,4 +1,4 @@
-// utils/generatePageRange.ts
+
 export function generatePageRange(
   currentPage: number,
   totalPages: number,

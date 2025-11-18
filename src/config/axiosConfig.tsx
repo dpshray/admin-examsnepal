@@ -23,7 +23,11 @@ axiosInstance.interceptors.response.use(
     },
     (error: AxiosError) => {
 
-        console.error("Response Error from axios:", error?.response?.data);
+        if (error && error.status === 401) {
+            localStorage.removeItem("_at");
+            window.location.href = '/'
+        }
+        console.error("Response Error from axios:", error?.status);
         return Promise.reject(error?.response);
     }
 );
