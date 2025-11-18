@@ -20,7 +20,7 @@ class DoubtService extends HttpService {
         }
     }
 
-    async resolveDoubt(doubtId: number, payload: { remark: string; selected_id: number }) {
+    async resolveDoubt(doubtId: number, payload: { question: string; options: { value: number; option: string }[]; explanation: string, remark: string; selected_id: number }) {
         try {
             const response = await this.postRequest({
                 url: `/doubtsresolve/${doubtId}`,
