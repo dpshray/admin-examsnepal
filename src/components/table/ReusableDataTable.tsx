@@ -173,7 +173,7 @@ export function ReusableDataTable<TData, TValue>({
                             <PopoverContent className="w-64 p-0">
                             <Command>
                                 <CommandInput placeholder={`Search ${filter.label.toLowerCase()}...`} />
-                                <CommandList>
+                                <CommandList className="custom-scrollbar">
                                 <CommandEmpty>No {filter.label.toLowerCase()} found.</CommandEmpty>
                                 <CommandGroup>
                                     <CommandItem

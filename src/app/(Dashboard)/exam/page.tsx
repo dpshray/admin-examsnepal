@@ -4,13 +4,15 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, BookOpen } from "lucide-react";
+import { AlertCircle, BookOpen, ChevronsUpDown } from "lucide-react";
 import { ExamModal } from "@/components/modal/exam-modal";
 import { ExamCard } from "@/components/card/exam-card";
 import { examService } from "@/service/exam.service";
 import CustomPagination from "@/components/Custom-Pagination";
 import ExamSkeletonCard from "@/components/skeleton/ExamSkeletonCard";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export default function ExamDashboard() {
   const router = useRouter();
@@ -20,6 +22,22 @@ export default function ExamDashboard() {
   const [exams, setExams] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [examTypes, setExamTypes] = useState<{ value: string; label: string }[]>([]);
+  const [examType, setExamType] = useState<string>("all");
+
+  useEffect(() => {
+    async function getTypes() {
+      const res = await examService.getExamType();
+      setExamTypes(
+        res.map((e: any) => ({
+          value: String(e.id),
+          label: e.name,
+        }))
+      );
+    }
+    getTypes();
+  }, []);
+
 
   const fetchExams = useCallback(async (page = 1) => {
     setIsLoading(true);
@@ -28,6 +46,7 @@ export default function ExamDashboard() {
       const params = {
         page: currentPage,
         per_page: 12,
+        exam_type: examType !== "all" ? examType : undefined,
       };
       const response = await examService.getAllExams(params, page);
       setExams(response?.data ?? []);
@@ -39,11 +58,11 @@ export default function ExamDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage]);
+  }, [currentPage, examType]);
 
   useEffect(() => {
     fetchExams(currentPage);
-  }, [fetchExams, currentPage]);
+  }, [fetchExams, currentPage, examType]);
 
   const handlePageChange = async (page: number) => {
     setCurrentPage(page);
@@ -75,6 +94,20 @@ export default function ExamDashboard() {
     }
   };
 
+  const filters = [
+    {
+      label: "Exam Type",
+      placeholder: "Select exam type",
+      selectedValue: examType,
+      onChange: (value: string) => {
+        setExamType(value);
+        setCurrentPage(1);
+      },
+      options: examTypes,
+    },
+  ];
+
+
   return (
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
@@ -104,6 +137,54 @@ export default function ExamDashboard() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
+        <div className="flex flex-wrap gap-4 mb-6">
+          {filters.map((filter, index) => (
+            <Popover key={index}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="w-64 justify-between"
+                >
+                  <span className="truncate max-w-[95%]">
+                    {filter.selectedValue && filter.selectedValue !== "all"
+                      ? filter.options.find(
+                          (opt) => String(opt.value) === String(filter.selectedValue)
+                        )?.label
+                      : "All " + filter.label}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-64 p-0">
+                <Command>
+                  <CommandInput placeholder={`Search ${filter.label.toLowerCase()}...`} />
+                  <CommandList className="custom-scrollbar">
+                    <CommandEmpty>No {filter.label.toLowerCase()} found.</CommandEmpty>
+
+                    <CommandGroup>
+                      <CommandItem onSelect={() => filter.onChange("all")}>
+                        All
+                      </CommandItem>
+
+                      {filter.options.map((opt) => (
+                        <CommandItem
+                          key={opt.value}
+                          onSelect={() => filter.onChange(String(opt.value))}
+                        >
+                          {opt.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          ))}
+        </div>
+
 
         {isLoading ? (
           <section aria-label="Loading exams">

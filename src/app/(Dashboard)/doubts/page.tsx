@@ -185,7 +185,7 @@ export default function Doubts() {
                 ) : (
                   <Circle className="h-4 w-4 text-gray-400 shrink-0 mt-[2px]" />
                 )}
-                <span className="whitespace-pre-wrap break-words">
+                <span className="whitespace-pre-wrap break-words custom-scrollbar max-h-80 overflow-y-auto">
                   {opt.option}
                 </span>
               </li>
@@ -219,7 +219,7 @@ export default function Doubts() {
                     View More
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="max-w-xl whitespace-pre-wrap break-words">
+                <PopoverContent className="max-w-xl whitespace-pre-wrap break-words custom-scrollbar max-h-80 overflow-y-auto">
                   <p>{explanation}</p>
                 </PopoverContent>
               </Popover>
@@ -265,12 +265,32 @@ export default function Doubts() {
       accessorKey: "remark",
       header: "Remark",
       enableSorting: false,
-      cell: ({ getValue }) => {
-        const val = getValue<string | null>();
-        return val ? (
-          <div className="max-w-[200px] text-gray-700 text-sm">{val}</div>
-        ) : (
-          <span className="text-gray-400 font-bold">—</span>
+      cell: ({ row }) => {
+        const remark = row.original.remark || "";
+        const preview =
+          remark.length > 100 ? remark.slice(0, 100) + "..." : remark;
+
+        return (
+          <div className="max-w-[250px] break-words whitespace-break-spaces text-sm">
+            <p className="text-gray-700">{preview}</p>
+
+            {remark.length > 100 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="text-blue-600 px-0 font-medium"
+                  >
+                    View More
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="max-w-xl whitespace-pre-wrap break-words custom-scrollbar max-h-80 overflow-y-auto">
+                  <p>{remark}</p>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
         );
       },
     },
@@ -279,24 +299,12 @@ export default function Doubts() {
       header: "Actions",
       cell: ({ row }) => (
         <Button
-          variant={row.original.status === "Resolved" ? "secondary" : "default"}
-          className={`text-sm ${
-            row.original.status === "Resolved"
-              ? "bg-green-50 text-green-700 hover:bg-green-100"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
+          variant="default"
+          size="sm"
           onClick={() => openDoubtModal(row.original)}
-          disabled={row.original.status === "Resolved"}
         >
-          {row.original.status === "Resolved" ? (
-            <>
-              <Check className="h-4 w-4 mr-1" /> Resolved
-            </>
-          ) : (
-            <>
-              <MessageSquare className="h-4 w-4 mr-1" /> Resolve
-            </>
-          )}
+          <MessageSquare className="h-4 w-4 mr-1" />
+          {row.original.status === "Resolved" ? "Edit" : "Resolve"}
         </Button>
       ),
     },
