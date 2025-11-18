@@ -3,16 +3,18 @@ import type React from "react"
 import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar"
 import {Separator} from "@/components/ui/separator"
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb"
-import AppSidebar, { NavGroup } from "./AppSidebar"
-import UserDropdown, { DropdownGroup } from "./UserDropdown"
-import { NotificationItem } from "./notification"
-import { usePathname } from "next/navigation"
+import AppSidebar, {NavGroup} from "./AppSidebar"
+import UserDropdown, {DropdownGroup} from "./UserDropdown"
+import {NotificationItem} from "./notification"
+import {usePathname} from "next/navigation"
+
 interface User {
     name: string
     email: string
     avatar?: string
     fallback: string
 }
+
 interface ReusableSidebarProps {
     children: React.ReactNode
     navGroups: NavGroup[]
@@ -27,35 +29,34 @@ interface ReusableSidebarProps {
 }
 
 const breadcrumbMap: { [key: string]: string } = {
-  "/": "",
-  "/exam": "Exams",
-  "/students": "Students",
-  "/subscriptions": "Subscriptions",
-  "/doubts": "Doubts",
+    "/": "",
+    "/exam": "Exams",
+    "/students": "Students",
+    "/subscriptions": "Subscriptions",
+    "/doubts": "Doubts",
 };
 
 export default function ReusableSidebar({
-    children,
-    navGroups,
-    title,
-    subtitle,
-    currentHref,
-    logo,
-    user = {
-        name: "ExamsNepal",
-        email: "ExamsNepal",
-        avatar: "/logo.svg",
-        fallback: "EN",
-    },
-    dropdownGroups = [],
-    onLogout,
-}: ReusableSidebarProps) {
+                                            children,
+                                            navGroups,
+                                            title,
+                                            subtitle,
+                                            currentHref,
+                                            user = {
+                                                name: "ExamsNepal",
+                                                email: "ExamsNepal",
+                                                avatar: "/logo.svg",
+                                                fallback: "EN",
+                                            },
+                                            dropdownGroups = [],
+                                            onLogout,
+                                        }: ReusableSidebarProps) {
     const pathname = usePathname();
     const currentLabel = breadcrumbMap[pathname] ?? "Admin";
 
     return (
         <SidebarProvider>
-            <AppSidebar navGroups={navGroups} title={title} subtitle={subtitle} currentHref={currentHref} logo={logo}/>
+            <AppSidebar navGroups={navGroups} title={title} subtitle={subtitle} currentHref={currentHref} />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 ">
                     <SidebarTrigger className="h-8 w-8 sm:h-9 sm:w-9"/>

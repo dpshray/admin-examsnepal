@@ -5,43 +5,43 @@ import ReusableSidebar from "@/components/Sidebar/ReusableSidebar";
 import { NavGroup } from "@/components/Sidebar/AppSidebar";
 import { DropdownGroup } from "@/components/Sidebar/UserDropdown";
 import {
-  User,
-  FileText,
-  Users,
-  CreditCard,
-  FileQuestionIcon,
+    User,
+    FileText,
+    Users,
+    CreditCard,
+    FileQuestionIcon, ClipboardList, HelpCircle,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
 import { toast } from "sonner";
 
 const navGroups: NavGroup[] = [
-  {
-    label: "Main",
-    items: [
-      {
-        label: "Exams",
-        href: "/exam",
-        icon: FileText,
-      },
-      {
-        label: "Students",
-        href: "/students",
-        icon: Users,
-      },
-      {
-        label: "Submissions",
-        href: "/submissions",
-        icon: CreditCard,
-      },
-      {
-        label: "Doubts",
-        href: "/doubts",
-        icon: FileQuestionIcon,
-      },
-    ],
-  },
-];
+    {
+        label: "Dashboard",
+        items: [
+            {
+                label: "Exams Management",
+                href: "/exams",
+                icon: FileText,
+            },
+            {
+                label: "Student Directory",
+                href: "/students",
+                icon: Users,
+            },
+            {
+                label: "Exam Submissions",
+                href: "/submissions",
+                icon: ClipboardList,
+            },
+            {
+                label: "Student Doubts",
+                href: "/doubts",
+                icon: HelpCircle,
+            },
+        ],
+    },
+]
 
 const dropdownGroups: DropdownGroup[] = [
   {
@@ -55,24 +55,7 @@ const dropdownGroups: DropdownGroup[] = [
   },
 ];
 
-// const notifications: NotificationItem[] = [
-//   {
-//     id: 1,
-//     user: "Alice",
-//     action: "placed an order",
-//     target: "#1234",
-//     timestamp: "2025-09-24T10:15:00Z",
-//     unread: true,
-//   },
-//   {
-//     id: 2,
-//     user: "Bob",
-//     action: "updated product",
-//     target: "Headphones",
-//     timestamp: "2025-09-23T18:30:00Z",
-//     unread: false,
-//   },
-// ];
+
 
 export default function DashboardLayout({
   children,
@@ -87,7 +70,6 @@ export default function DashboardLayout({
       currentHref="/dashboard"
       logo={<Image src="/logo.svg" alt="Logo" width={32} height={32} />}
       dropdownGroups={dropdownGroups}
-      // notifications={notifications}
       onLogout={() => {
         try {
             authService.logout()
