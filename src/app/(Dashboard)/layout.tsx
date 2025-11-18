@@ -21,7 +21,7 @@ const navGroups: NavGroup[] = [
         items: [
             {
                 label: "Exams Management",
-                href: "/exams",
+                href: "/exam",
                 icon: FileText,
             },
             {
