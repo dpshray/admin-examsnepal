@@ -12,12 +12,6 @@ import TextInputField from "../field/TextInputField"
 import { toast } from "sonner"
 import { doubtService } from "@/service/doubt.service"
 
-interface Option {
-  id: number
-  option: string
-  value: number
-}
-
 interface ResolveDoubtDialogProps {
   doubt: any | null
   isOpen: boolean
@@ -33,76 +27,83 @@ export default function ResolveDoubtDialog({
 }: ResolveDoubtDialogProps) {
   const [loading, setLoading] = useState(false)
   const [question, setQuestion] = useState("")
-  const [options, setOptions] = useState<Option[]>([])
   const [explanation, setExplanation] = useState("")
   const [remark, setRemark] = useState("")
+  const [options, setOptions] = useState([
+    { key: "a", text: "", isTrue: 0 },
+    { key: "b", text: "", isTrue: 0 },
+    { key: "c", text: "", isTrue: 0 },
+    { key: "d", text: "", isTrue: 0 },
+  ]);
 
   useEffect(() => {
-    if (doubt) {
-      setQuestion(doubt.question?.question || "")
-      setOptions(doubt.question?.options || [])
-      setExplanation(doubt.question?.explanation || "")
-      setRemark(doubt.remark || "")
-    }
-  }, [doubt])
+    if (!doubt) return;
 
-  const handleOptionChange = (id: number, field: "option" | "value", value: any) => {
+    setQuestion(doubt.question?.question ?? "");
+    setExplanation(doubt.question?.explanation ?? "");
+    setRemark(doubt.remark ?? "");
+
+    // Convert array to your modal state
+    const arr = doubt.question?.options ?? [];
+
+    const mapped = [
+      { key: "a", text: arr[0]?.option ?? "", isTrue: Number(arr[0]?.value ?? 0) },
+      { key: "b", text: arr[1]?.option ?? "", isTrue: Number(arr[1]?.value ?? 0) },
+      { key: "c", text: arr[2]?.option ?? "", isTrue: Number(arr[2]?.value ?? 0) },
+      { key: "d", text: arr[3]?.option ?? "", isTrue: Number(arr[3]?.value ?? 0) },
+    ];
+
+    setOptions(mapped);
+  }, [doubt]);
+
+  const handleOptionChange = (key: string, value: string) => {
     setOptions((prev) =>
-      prev.map((opt) =>
-        opt.id === id
-          ? { ...opt, [field]: field === "value" ? Number(value) : value }
-          : opt
-      )
-    )
-  }
+      prev.map((opt) => (opt.key === key ? { ...opt, text: value } : opt))
+    );
+  };
 
-  const handleAddOption = () => {
-    const newOption: Option = {
-      id: Date.now(),
-      option: "",
-      value: 0,
-    }
-    setOptions((prev) => [...prev, newOption])
-  }
-
-  const handleRemoveOption = (id: number) => {
-    setOptions((prev) => prev.filter((opt) => opt.id !== id))
-  }
+  const handleCorrectChange = (key: string) => {
+    setOptions((prev) =>
+      prev.map((opt) => ({
+        ...opt,
+        isTrue: opt.key === key ? 1 : 0,
+      }))
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!doubt) return toast.error("No doubt selected")
 
-    if (!question.trim()) {
-      toast.error("Question cannot be empty.")
-      return
+    if (!question.trim()) return toast.error("Question cannot be empty.");
+    if (!explanation.trim()) return toast.error("Explanation cannot be empty.");
+    if (!remark.trim()) return toast.error("Remark is required.");
+
+    if (!options.some((o) => o.isTrue === 1)) {
+      return toast.error("Select one correct option.");
     }
 
-    if (!explanation.trim()) {
-      toast.error("Explanation cannot be empty.")
-      return
-    }
+    const payload = {
+      question: question,
+      explanation: explanation,
+      remark: remark,
+      selected_id: doubt.id,
 
-    if (!remark.trim()) {
-      toast.error("Remark is required.")
-      return
-    }
+      option_a: options[0].text,
+      option_a_is_true: options[0].isTrue,
 
-    if (options.length === 0 || !options.some((opt) => opt.value === 1)) {
-      toast.error("At least one option must be correct.")
-      return
-    }
+      option_b: options[1].text,
+      option_b_is_true: options[1].isTrue,
 
+      option_c: options[2].text,
+      option_c_is_true: options[2].isTrue,
+
+      option_d: options[3].text,
+      option_d_is_true: options[3].isTrue,
+    };
     setLoading(true)
     try {
-      await doubtService.resolveDoubt(doubt.id, {
-        question: question.trim(),
-        options,
-        explanation: explanation.trim(),
-        remark: remark.trim(),
-        selected_id: doubt.id,
-      })
-
+      await doubtService.resolveDoubt(doubt.id, payload);
       toast.success("Doubt updated successfully!")
       onSuccess()
       onClose()
@@ -134,41 +135,30 @@ export default function ResolveDoubtDialog({
           />
 
           {/* Options */}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-gray-700">Options</label>
-            {options.map((opt, index) => (
-              <div key={opt.id} className="flex items-center gap-2">
+          <div className="flex flex-col gap-3">
+            <label className="font-medium">Options</label>
+
+            {options.map((opt) => (
+              <div key={opt.key} className="flex items-center gap-2">
                 <input
                   type="radio"
-                  checked={opt.value === 1}
-                  onChange={() =>
-                    setOptions((prev) =>
-                      prev.map((o) => ({ ...o, value: o.id === opt.id ? 1 : 0 }))
-                    )
-                  }
+                  checked={opt.isTrue === 1}
+                  onChange={() => handleCorrectChange(opt.key)}
                   className="accent-green-600"
                 />
+
                 <input
                   type="text"
-                  value={opt.option}
-                  onChange={(e) => handleOptionChange(opt.id, "option", e.target.value)}
-                  placeholder={`Option ${index + 1}`}
-                  className="flex-1 border rounded px-2 py-1"
+                  value={opt.text}
+                  onChange={(e) =>
+                    handleOptionChange(opt.key, e.target.value)
+                  }
+                  placeholder={`Option ${opt.key.toUpperCase()}`}
+                  className="flex-1 border px-2 py-1 rounded"
                   required
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleRemoveOption(opt.id)}
-                  size="sm"
-                >
-                  Remove
-                </Button>
               </div>
             ))}
-            <Button type="button" variant="ghost" onClick={handleAddOption} className="mt-2">
-              + Add Option
-            </Button>
           </div>
 
           {/* Explanation */}

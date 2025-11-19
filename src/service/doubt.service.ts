@@ -20,12 +20,12 @@ class DoubtService extends HttpService {
         }
     }
 
-    async resolveDoubt(doubtId: number, payload: { question: string; options: { value: number; option: string }[]; explanation: string, remark: string; selected_id: number }) {
+    async resolveDoubt(doubtId: number, payload: any) {
         try {
             const response = await this.postRequest({
-                url: `/doubtsresolve/${doubtId}`,
-                data: payload,
-                config: { auth: true }
+            url: `/doubtsresolve/${doubtId}`,
+            data: payload,
+            config: { auth: true }
             });
             return response;
         } catch (err) {
