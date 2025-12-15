@@ -9,6 +9,9 @@ import SubscriptionDialog from "@/components/modal/SubscriptionDialog"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { examService } from "@/service/exam.service"
+import { Switch } from "@/components/ui/switch"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
 
 interface Student {
     id: number;
@@ -17,6 +20,7 @@ interface Student {
     phone: string;
     exam_type: number;
     registered_date: string | null;
+    email_verified_at: string | null;
     is_subscripted: number;
     subscription_start_date: string | null;
     subscription_end_date: string | null;
@@ -33,6 +37,7 @@ export default function StudentsPage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [examTypes, setExamTypes] = useState<{ value: string; label: string }[]>([])
     const [selectedExamType, setSelectedExamType] = useState<string>("");
+    const [verifyingId, setVerifyingId] = useState<number | null>(null)
 
     const fetchStudents = useCallback(
         async (page: number = 1, size: number = pageSize, search: string = searchTerm, examType: string = selectedExamType) => {
@@ -132,18 +137,56 @@ export default function StudentsPage() {
     {
         accessorKey: "email_verified_at",
         header: "Email Verified",
-        cell: ({ getValue }) => {
-            const val = (getValue<string>() || "").toLowerCase();
+        cell: ({ row }) => {
+            const student = row.original
+            const isVerified = student.email_verified_at?.toLowerCase() === "verified"
 
-            const isActive = val.includes("verified") && !val.includes("not");
+            const isLoading = verifyingId === student.id
+
+            const handleVerify = async (checked: boolean) => {
+                // Prevent turning OFF
+                if (!checked || isVerified) return
+                setVerifyingId(student.id)
+
+                try {
+                    await studentService.verifyStudent(student.id)
+
+                    // Optimistic UI update
+                    setStudents((prev) =>
+                        prev.map((s) =>
+                            s.id === student.id
+                            ? { ...s, email_verified_at: "Verified" }
+                            : s
+                        )
+                    )
+                    toast.success(`${student.email} has been verified successfully.`)
+                } catch (err) {
+                    console.error("Verification failed", err)
+                    toast.error("Verification failed. Please try again.")
+                } finally {
+                    setVerifyingId(null)
+                }
+            }
 
             return (
-            <Badge variant={isActive ? "green" : "destructive"}>
-                {getValue<string>()}
-            </Badge>
-            );
+                <div className="flex items-center gap-3">
+                    {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                    ) : (
+                        <Switch
+                            checked={isVerified}
+                            onCheckedChange={handleVerify}
+                            disabled={isVerified}
+                        />
+                    )}
+                    <span className="text-xs ">
+                        {isVerified ? "Verified" : "Not Verified"}
+                    </span>
+                </div>
+            )
         },
     },
+
     {
         accessorKey: "is_subscripted",
         header: "Subscription Status",

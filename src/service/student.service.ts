@@ -66,6 +66,19 @@ class StudentService extends HttpService {
         }
     }
 
+    async verifyStudent(studentId: number) {
+        try {
+            const response = await this.getRequest({
+                url: `/admin/manual-student-email-verify/${studentId}`,
+                config: { auth: true }
+            });
+            return response;
+        } catch (err) {
+            console.error("Error verifying student:", err);
+            throw err;
+        }
+    }
+
 }
 
 export const studentService = new StudentService()
