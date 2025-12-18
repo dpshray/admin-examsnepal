@@ -22,18 +22,18 @@ export interface TextInputFieldProps {
 }
 
 const TextInputField: React.FC<TextInputFieldProps> = React.memo(({
-                                                                      name,
-                                                                      label,
-                                                                      placeholder,
-                                                                      type = "text",
-                                                                      required = false,
-                                                                      className,
-                                                                      icon: Icon,
-                                                                      error,
-                                                                      textarea = false,
-                                                                      disabled = false,
-                                                                      ...props
-                                                                  }) => {
+    name,
+    label,
+    placeholder,
+    type = "text",
+    required = false,
+    className,
+    icon: Icon,
+    error,
+    textarea = false,
+    disabled = false,
+    ...props
+}) => {
     const inputId = name || `input-${Math.random().toString(36).substr(2, 9)}`
 
     return (

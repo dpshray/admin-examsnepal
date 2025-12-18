@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import DOMPurify from "dompurify";
 
 interface Option {
   id: number;
@@ -45,6 +46,8 @@ export default function Doubts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDoubt, setSelectedDoubt] = useState<Doubt | null>(null);
 
+  const stripHTML = (html: string) => html.replace(/<[^>]*>/g, "").replace(/\r/g, "")
+  
   const fetchDoubts = useCallback(
     async (page: number = 1, size: number = pageSize) => {
       setLoading(true);
@@ -198,17 +201,24 @@ export default function Doubts() {
       accessorKey: "question.explanation",
       header: "Explanation",
       cell: ({ row }) => {
-        const explanation = row.original.question?.explanation || "";
+        const rawExplanation = row.original.question?.explanation || ""
+
+        const cleanHTML = DOMPurify.sanitize(rawExplanation)
+        const plainText = stripHTML(rawExplanation)
+
         const preview =
-          explanation.length > 100
-            ? explanation.slice(0, 100) + "..."
-            : explanation;
+          plainText.length > 100
+            ? plainText.slice(0, 100) + "..."
+            : plainText
 
         return (
-          <div className="max-w-[250px] break-words whitespace-break-spaces text-sm">
-            <p className="text-gray-700">{preview}</p>
+          <div className="max-w-[250px] break-words text-sm">
+            {/* Preview (plain text only) */}
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {preview}
+            </p>
 
-            {explanation.length > 100 && (
+            {plainText.length > 100 && (
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -219,16 +229,20 @@ export default function Doubts() {
                     View More
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="max-w-xl whitespace-pre-wrap break-words custom-scrollbar max-h-80 overflow-y-auto">
-                  <p>{explanation}</p>
+
+                {/* Full explanation (HTML rendered safely) */}
+                <PopoverContent className="max-w-xl max-h-80 overflow-y-auto custom-scrollbar">
+                  <div
+                    className="text-sm whitespace-pre-wrap break-words"
+                    dangerouslySetInnerHTML={{ __html: cleanHTML }}
+                  />
                 </PopoverContent>
               </Popover>
             )}
           </div>
-        );
+        )
       },
     },
-
     {
       accessorKey: "date",
       header: "Date",
@@ -311,7 +325,7 @@ export default function Doubts() {
   ];
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+    <div className="p-6 bg-white shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <Info className="h-6 w-6 text-blue-600" />

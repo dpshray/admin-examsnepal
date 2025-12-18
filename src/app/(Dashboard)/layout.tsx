@@ -55,8 +55,6 @@ const dropdownGroups: DropdownGroup[] = [
   },
 ];
 
-
-
 export default function DashboardLayout({
   children,
 }: Readonly<{
