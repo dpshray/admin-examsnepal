@@ -4,7 +4,7 @@ class AuthService extends HttpServices {
     async login(data: any) {
         try {
             const response = await this.postRequest({
-                url: "/teacher/login",
+                url: "/admin/login",
                 data,
             })
             console.log(response)
