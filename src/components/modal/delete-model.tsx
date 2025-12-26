@@ -78,7 +78,7 @@ export function DeleteDialog({
               {description}
               {itemName && (
                   <span className="block mt-2 font-semibold text-foreground break-words">
-                "{itemName}"
+                {itemName}
               </span>
               )}
             </DialogDescription>
@@ -102,7 +102,7 @@ export function DeleteDialog({
             </Button>
             <Button
                 type="button"
-                variant={variant}
+                variant="destructive"
                 onClick={handleDelete}
                 disabled={loading}
                 className="w-full sm:w-auto min-w-[100px]"
