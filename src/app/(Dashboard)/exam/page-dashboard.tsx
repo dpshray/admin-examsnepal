@@ -130,7 +130,6 @@ export default function AddQuestionPageWithImage() {
                     {...register("question")}
                     error={errors.question?.message}
                     disabled={isSubmitting}
-                    id={`${id}-question`}
                 />
 
                 <div className="space-y-4">
@@ -214,7 +213,6 @@ export default function AddQuestionPageWithImage() {
                                     {...register(field)}
                                     error={errors[field]?.message}
                                     disabled={isSubmitting}
-                                    id={`${id}-${value}-option`}
                                 />
                             ))}
                         </div>

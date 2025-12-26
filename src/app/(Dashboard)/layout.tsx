@@ -68,9 +68,9 @@ export default function DashboardLayout({
       currentHref="/dashboard"
       logo={<Image src="/logo.svg" alt="Logo" width={32} height={32} />}
       dropdownGroups={dropdownGroups}
-      onLogout={() => {
+      onLogout={async () => {
         try {
-            authService.logout()
+            await authService.logout()
             toast.success("Logged out successfully")
             window.location.href = "/"
         } catch (error) {

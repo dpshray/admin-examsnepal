@@ -2,7 +2,7 @@ import HttpService from "@/service/http.service";
 
 class ExamService extends HttpService {
 
-    async getExamType() {
+    async getAllExamType() {
         try {
             const response = await this.getRequest({
                 url: "/exam-types",
@@ -44,7 +44,7 @@ class ExamService extends HttpService {
     async getAllExams(params: { [key: string]: any } = {}, page: number = 1) {
         try {
             const response = await this.getRequest({
-                url: "teacher/exam",
+                url: "/teacher/exam",
                 config: {
                     auth: true,
                     params: {
@@ -64,7 +64,7 @@ class ExamService extends HttpService {
         try {
             const response = await this.getRequest({
                 // teacher/exam/1/question
-                url: `teacher/exam/${id}/question?page=${page}`,
+                url: `/teacher/exam/${id}/question?page=${page}`,
                 config: {
                     auth: true,
                 }
