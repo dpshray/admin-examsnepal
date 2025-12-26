@@ -19,6 +19,7 @@ import { examService } from "@/service/exam.service";
 import CustomPagination from "@/components/Custom-Pagination";
 import FileInputField from "@/components/field/FileInputField";
 import { toast } from "sonner";
+import TextInputField from "@/components/field/TextInputField";
 
 const questionSchema = yup.object({
   question: yup
@@ -49,24 +50,7 @@ const OPTIONS = [
   { value: "D", label: "Option D", field: "optionD" as keyof QuestionFormData },
 ];
 
-const TextInputField = ({
-  label,
-  error,
-  ...props
-}: React.ComponentProps<typeof Input> & { label: string; error?: string }) => (
-  <div className="space-y-2">
-    <Label className="text-sm font-medium">{label}</Label>
-    <Input
-      {...props}
-      className={error ? "border-red-500 focus:border-red-500" : ""}
-    />
-    {error && (
-      <p className="text-sm text-red-500" role="alert">
-        {error}
-      </p>
-    )}
-  </div>
-);
+
 
 interface Question {
   id: string | number;

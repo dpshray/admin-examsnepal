@@ -47,7 +47,7 @@ class StudentService extends HttpService {
         }
     }
 
-    async getAllSubmissions(params: { [key: string]: any } = {}, page: number = 1) {
+    async getAllSubmissions(params: any) {
         try {
             const response = await this.getRequest({
                 url: "/submissionslist",
@@ -55,7 +55,6 @@ class StudentService extends HttpService {
                     auth: true,
                     params: {
                         ...params,
-                        page,
                     }
                 }
             });

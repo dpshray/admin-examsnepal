@@ -1,26 +1,33 @@
 "use client"
 
-import React, {useEffect, useState} from "react"
+import {memo, useCallback, useEffect, useMemo} from "react"
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"
 import {Switch} from "@/components/ui/switch"
-import {examService} from "@/service/exam.service"
+import {Alert, AlertDescription} from "@/components/ui/alert"
 import SelectInputField from "@/components/field/SelectInputField"
-import {useForm} from "react-hook-form"
-import * as Yup from "yup"
-import {yupResolver} from "@hookform/resolvers/yup"
 import TextInputField from "@/components/field/TextInputField"
-import {toast} from "sonner";
+import {useForm} from "react-hook-form"
+import {yupResolver} from "@hookform/resolvers/yup"
+import * as yup from "yup"
+import {toast} from "sonner"
+import {AlertCircle, Loader2} from "lucide-react"
+import {useExamTypes} from "@/hooks/useExamTypes"
+import {useExamCategories} from "@/hooks/useExamCategories"
+import {examService} from "@/service/exam.service"
 
 interface ExamFormData {
     exam_type_id: number
     category_type: number
     exam_name: string
     description: string
-    publish: boolean
-    assign: boolean
-    live: boolean
+    publish: number
+    assign: number
+    live: number
+    is_negative_marking: number
+    negative_marking_point: number
+    points_per_question: number
 }
 
 interface ExamModalProps {
@@ -28,222 +35,309 @@ interface ExamModalProps {
     onClose: () => void
     mode?: "create" | "update"
     initialData?: Partial<ExamFormData> & { id?: number } | null
-    onSuccess?: () => void
+    onSuccessAction?: () => void
 }
 
-const examSchema = Yup.object().shape({
-    exam_type_id: Yup.number().required("Exam type is required"),
-    category_type: Yup.number().required("Category type is required"),
-    exam_name: Yup.string().required("Exam name is required"),
-    description: Yup.string().required("Description is required"),
-    publish: Yup.boolean().required("Publish is required"),
-    assign: Yup.boolean().required("Assign is required"),
-    live: Yup.boolean().required("Live is required"),
+const examSchema = yup.object({
+    exam_type_id: yup.number().required("Exam type is required"),
+    category_type: yup.number().required("Category is required"),
+    exam_name: yup.string().required("Exam name is required"),
+    description: yup.string().required("Description is required"),
+    publish: yup.number().oneOf([0, 1], "Invalid value").required(),
+    assign: yup.number().oneOf([0, 1], "Invalid value").required(),
+    live: yup.number().oneOf([0, 1], "Invalid value").required(),
+    is_negative_marking: yup.number().oneOf([0, 1], "Invalid value").required(),
+    negative_marking_point: yup
+        .number()
+        .min(0, "Must be 0 or more")
+        .required("Negative marking point is required"),
+    points_per_question: yup
+        .number()
+        .min(0, "Must be 0 or more")
+        .required("Points per question is required"),
 })
 
-export function ExamModal({isOpen, onClose, mode = "create", initialData, onSuccess}: ExamModalProps) {
-    const [examTypes, setExamTypes] = useState<{ id: number; name: string }[]>([])
-    const [categoryTypes, setCategoryTypes] = useState<{ id: number; name: string }[]>([])
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+const SwitchField = memo(
+    ({
+         id,
+         label,
+         description,
+         checked,
+         onChange,
+         disabled,
+     }: {
+        id: string
+        label: string
+        description: string
+        checked: boolean
+        onChange: (checked: boolean) => void
+        disabled: boolean
+    }) => (
+        <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+            <div className="space-y-0.5 flex-1 pr-2">
+                <Label htmlFor={id} className="text-sm font-medium cursor-pointer">
+                    {label}
+                </Label>
+                <p className="text-xs text-muted-foreground">{description}</p>
+            </div>
+            <Switch id={id} checked={checked} onCheckedChange={onChange} disabled={disabled} aria-label={label}/>
+        </div>
+    )
+)
+
+SwitchField.displayName = "SwitchField"
+
+export const ExamModalForm = memo(function ExamModalForm({
+                                                             isOpen,
+                                                             onClose,
+                                                             mode = "create",
+                                                             initialData,
+                                                             onSuccessAction,
+                                                         }: ExamModalProps) {
+    const {data: examTypesData, isLoading: examTypesLoading, error: examTypesError} = useExamTypes()
+    const {data: examCategories, isLoading: categoriesLoading, error: categoriesError} = useExamCategories()
 
     const {
         register,
         handleSubmit: formHandleSubmit,
-        formState: {errors},
+        formState: {errors, isSubmitting},
         setValue,
         watch,
+        reset,
     } = useForm<ExamFormData>({
         resolver: yupResolver(examSchema),
         defaultValues: {
-            exam_type_id: 1,
-            category_type: 1,
+            exam_type_id: 0,
+            category_type: 0,
             exam_name: "",
             description: "",
-            publish: true,
-            assign: true,
-            live: true
+            publish: 1,
+            assign: 1,
+            live: 1,
+            is_negative_marking: 0,
+            negative_marking_point: 0,
+            points_per_question: 0,
         },
     })
 
     const formData = watch()
 
-    const handleSubmit = async (data: ExamFormData) => {
-        setIsSubmitting(true)
-        setError(null)
-        try {
-            const payload = {
-                ...data,
-                publish: data.publish ? 1 : 0,
-                assign: data.assign ? 1 : 0,
-                live: data.live ? 1 : 0,
-            }
-            let response
+    const examTypeOptions = useMemo(() => {
+        if (!examTypesData?.length) return []
+        return examTypesData.map((type: any) => ({label: type.name, value: type.id}))
+    }, [examTypesData])
+
+    const categoryTypeOptions = useMemo(() => {
+        if (!examCategories?.length) return []
+        return examCategories.map((category: any) => ({label: category.name, value: category.id}))
+    }, [examCategories])
+
+    const handleClose = useCallback(() => {
+        reset()
+        onClose()
+    }, [onClose, reset])
+
+    const handleSubmit = useCallback(
+        async (data: ExamFormData) => {
+            try {
+                let response
                 if (mode === "update" && initialData?.id) {
-                response = await examService.updateExam(initialData.id, payload)
-                toast.success(response?.message || "Exam updated successfully")
+                    response = await examService.updateExam(initialData.id, data)
+                    toast.success(response?.message || "Exam updated successfully")
                 } else {
-                response = await examService.createExam(payload)
-                toast.success(response?.message || "Exam created successfully")
+                    response = await examService.createExam(data)
+                    toast.success(response?.message || "Exam created successfully")
+                }
+                onSuccessAction?.()
+                handleClose()
+            } catch (error: any) {
+                const errorMessage = error?.response?.data?.message || error?.message || "Operation failed. Please try again."
+                toast.error(errorMessage)
             }
-            if (onSuccess) onSuccess()
-            onClose()
-        } catch (error: any) {
-            setError( error?.message || "Failed to create exam. Please try again.")
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
+        },
+        [mode, initialData?.id, onSuccessAction, handleClose]
+    )
 
     useEffect(() => {
-        if (mode === "update" && initialData) {
-            setValue("exam_type_id", initialData.exam_type_id || 1)
-            setValue("category_type", initialData.category_type || 1)
-            setValue("exam_name", initialData.exam_name || "")
-            setValue("description", initialData.description || "")
-            setValue("publish", Boolean(initialData.publish))
-            setValue("assign", Boolean(initialData.assign))
-            setValue("live", Boolean(initialData.live))
+        if (!isOpen) return
+        if (mode === "create") {
+            if (examTypesData?.length > 0) setValue("exam_type_id", examTypesData[0].id)
+            if (examCategories?.length > 0) setValue("category_type", examCategories[0].id)
+        } else if (mode === "update" && initialData) {
+            ;[
+                "exam_type_id",
+                "category_type",
+                "exam_name",
+                "description",
+                "publish",
+                "assign",
+                "live",
+                "is_negative_marking",
+                "negative_marking_point",
+                "points_per_question",
+            ].forEach((field) => {
+                const value = initialData[field as keyof ExamFormData]
+                if (value !== undefined) setValue(field as keyof ExamFormData, value)
+            })
         }
-    }, [mode, initialData, setValue])
-    
-    console.log("Initial Data:", initialData);
+    }, [isOpen, mode, initialData, examTypesData, examCategories, setValue])
 
-    useEffect(() => {
-    if (!isOpen) return
-    setLoading(true)
-    setError(null)
-
-    const fetchData = async () => {
-        try {
-            const [examTypesRes, categoryTypesRes] = await Promise.all([
-                examService.getExamType(),
-                examService.examCategory()
-            ])
-
-            setExamTypes(examTypesRes)
-            setCategoryTypes(categoryTypesRes)
-
-            if (mode === "create") {
-                if (examTypesRes.length > 0) setValue("exam_type_id", examTypesRes[0].id)
-                if (categoryTypesRes.length > 0) setValue("category_type", categoryTypesRes[0].id)
-            } else if (mode === "update" && initialData) {
-                setValue("exam_type_id", initialData.exam_type_id || 1)
-                setValue("category_type", initialData.category_type || 1)
-                setValue("exam_name", initialData.exam_name || "")
-                setValue("description", initialData.description || "")
-                setValue("publish", Boolean(initialData.publish))
-                setValue("assign", Boolean(initialData.assign))
-                setValue("live", Boolean(initialData.live))
-            }
-        } catch {
-            setError("Failed to load exam/category types.")
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    fetchData()
-}, [isOpen, mode, initialData, setValue])
+    const isLoading = examTypesLoading || categoriesLoading
+    const hasError = !!(examTypesError || categoriesError)
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+        <Dialog open={isOpen} onOpenChange={handleClose}>
+            <DialogContent className="w-[95vw] max-w-125 max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                 <DialogHeader>
-                    <DialogTitle>{mode === "update" ? "Update Exam" : "Create New Exam"}</DialogTitle>
+                    <DialogTitle className="text-lg sm:text-xl font-semibold">
+                        {mode === "update" ? "Update Exam" : "Create New Exam"}
+                    </DialogTitle>
                 </DialogHeader>
-                {loading && (
-                    <div className="mb-4 text-center text-sm text-gray-500">Loading...</div>
+
+                {isLoading && (
+                    <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary"/>
+                        <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+                    </div>
                 )}
-                {error && (
-                    <div className="mb-4 text-center text-sm text-red-600">{error}</div>
+
+                {hasError && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4"/>
+                        <AlertDescription>Failed to load form data. Please try again.</AlertDescription>
+                    </Alert>
                 )}
-                <form onSubmit={formHandleSubmit(handleSubmit)} className="space-y-4">
-                    <div className="space-y-2">
+
+                {!isLoading && !hasError && (
+                    <form onSubmit={formHandleSubmit(handleSubmit)} className="space-y-4">
                         <TextInputField
                             label="Exam Name"
-                            placeholder="Enter Exam Name"
+                            placeholder="Enter exam name"
+                            required
                             {...register("exam_name")}
                             error={errors.exam_name?.message}
-                            value={formData.exam_name}
-                            disabled={loading || isSubmitting}
+                            disabled={isSubmitting}
                         />
-                    </div>
-                    <div className="grid gap-4">
-                        <div className="space-y-2 max-w-[380px]">
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <SelectInputField
                                 label="Exam Type"
-                                placeholder="Select Exam Type"
-                                options={examTypes.map(({id, name}) => ({label: name, value: id.toString()}))}
-                                value={formData.exam_type_id.toString()}
-                                onChange={(value) => setValue("exam_type_id", Number(value))}
-                                disabled={loading || isSubmitting}
+                                placeholder="Select exam type"
+                                options={examTypeOptions}
+                                value={formData.exam_type_id}
+                                onChangeAction={(value) => setValue("exam_type_id", Number(value))}
+                                disabled={isSubmitting}
+                                required
+                                error={errors.exam_type_id?.message}
                             />
-                        </div>
-                        <div className="space-y-2 max-w-[380px]">
                             <SelectInputField
-                                label="Category Type"
-                                placeholder="Select Category"
-                                options={categoryTypes.map(({id, name}) => ({label: name, value: id.toString()}))}
-                                value={formData.category_type.toString()}
-                                onChange={(value) => setValue("category_type", Number(value))}
-                                disabled={loading || isSubmitting}
+                                label="Category"
+                                placeholder="Select category"
+                                options={categoryTypeOptions}
+                                value={formData.category_type}
+                                onChangeAction={(value) => setValue("category_type", Number(value))}
+                                disabled={isSubmitting}
+                                required
+                                error={errors.category_type?.message}
                             />
                         </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+
                         <TextInputField
+                            label="Description"
+                            placeholder="Enter exam description"
                             textarea
-                            placeholder="Enter Description"
+                            rows={4}
+                            required
                             {...register("description")}
                             error={errors.description?.message}
-                            value={formData.description}
-                            disabled={loading || isSubmitting}
+                            disabled={isSubmitting}
                         />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="publish"
-                            checked={formData.publish}
-                            className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
-                            onCheckedChange={(checked) => setValue("publish", checked)}
-                            disabled={loading || isSubmitting}
-                        />
-                        <Label htmlFor="publish">Publish exam</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="assign"
-                            checked={formData.assign}
-                            className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
-                            onCheckedChange={(checked) => setValue("assign", checked)}
-                            disabled={loading || isSubmitting}
-                        />
-                        <Label htmlFor="assign">Assign exam</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="live"
-                            checked={formData.live}
-                            className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
-                            onCheckedChange={(checked) => setValue("live", checked)}
-                            disabled={loading || isSubmitting}
-                        />
-                        <Label htmlFor="live">Live exam</Label>
-                    </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting || loading}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting || loading}>
-                            {isSubmitting ? (mode === "update" ? "Updating..." : "Creating...") 
-                                : (mode === "update" ? "Update Exam" : "Create Exam")}
-                        </Button>
-                    </div>
-                </form>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <TextInputField
+                                label="Points per Question"
+                                placeholder="Enter correct marking points"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="99999.99"
+                                required
+                                {...register("points_per_question", {valueAsNumber: true})}
+                                error={errors.points_per_question?.message}
+                                disabled={isSubmitting}
+                            />
+                            {formData.is_negative_marking === 1 && (
+                                <TextInputField
+                                    label="Negative Marking Points"
+                                    placeholder="Enter negative marking points"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="99999.99"
+                                    required
+                                    {...register("negative_marking_point", {valueAsNumber: true})}
+                                    error={errors.negative_marking_point?.message}
+                                    disabled={isSubmitting}
+                                />
+                            )}
+                        </div>
+
+                        <div className="space-y-3 pt-2">
+                            <SwitchField
+                                id="publish"
+                                label="Publish Exam"
+                                description="Make this exam visible to students"
+                                checked={formData.publish === 1}
+                                onChange={(checked) => setValue("publish", checked ? 1 : 0)}
+                                disabled={isSubmitting}
+                            />
+                            <SwitchField
+                                id="assign"
+                                label="Assign Exam"
+                                description="Assign this exam to students"
+                                checked={formData.assign === 1}
+                                onChange={(checked) => setValue("assign", checked ? 1 : 0)}
+                                disabled={isSubmitting}
+                            />
+                            <SwitchField
+                                id="live"
+                                label="Live Exam"
+                                description="Set exam as live/active"
+                                checked={formData.live === 1}
+                                onChange={(checked) => setValue("live", checked ? 1 : 0)}
+                                disabled={isSubmitting}
+                            />
+                            <SwitchField
+                                id="is_negative_marking"
+                                label="Negative Marking"
+                                description="Enable negative marking for wrong answers"
+                                checked={formData.is_negative_marking === 1}
+                                onChange={(checked) => setValue("is_negative_marking", checked ? 1 : 0)}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
+                        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4">
+                            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}
+                                    className="w-full sm:w-auto">
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
+                                        {mode === "update" ? "Updating..." : "Creating..."}
+                                    </>
+                                ) : mode === "update" ? (
+                                    "Update Exam"
+                                ) : (
+                                    "Create Exam"
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                )}
             </DialogContent>
         </Dialog>
     )
-}
+})

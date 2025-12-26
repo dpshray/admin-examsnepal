@@ -1,4 +1,7 @@
 import axiosInstance from "@/config/axiosConfig";
+import {AxiosRequestConfig} from 'axios';
+
+;
 
 interface RequestProps<T = any> {
     url: string;
@@ -10,26 +13,48 @@ interface HeaderConfigProps {
     auth?: boolean;
     file?: boolean;
     params?: Record<string, any>;
+    customHeaders?: Record<string, string>;
 }
 
-class HttpServices {
-    private buildHeaders(config?: HeaderConfigProps): Record<string, string> {
-        const headers: Record<string, string> = {
-            "Content-Type": "application/json",
-        };
 
+class HttpServices {
+    private headers: Record<string, string> = {};
+
+
+    private setHeaders(config?: HeaderConfigProps) {
+        this.headers = {};
         if (config?.auth) {
             const token = localStorage.getItem("_at");
-            if (!token) throw new Error("Login first to access this resource");
-            headers["Authorization"] = `Bearer ${token}`;
-            // headers["Authorization"] = `Bearer ${'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3NvY2lhbGFwaS5zdGFnZS5kd29ya2xhYnMuY29tL2FwaS92MS9sb2dpbiIsImlhdCI6MTc1MTYxNTYxMCwiZXhwIjoxNzUxNjE5MjEwLCJuYmYiOjE3NTE2MTU2MTAsImp0aSI6IkxNMlV6YzJ0RWowZFNMVTYiLCJzdWIiOiIyIiwicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.yRAn17MAp9b-4_6bumRoQONhdHekDPc9BnHwcZyMtVM'}`;
-        }
+            if (!token) {
+                window.location.href = "/login";
+                throw new Error("Authentication required. Please login first.");
 
+            }
+            this.headers["Authorization"] = `Bearer ${token}`;
+        }
         if (config?.file) {
-            headers["Content-Type"] = "multipart/form-data";
+            this.headers["Content-Type"] = "multipart/form-data";
         }
+        if (config?.customHeaders) {
+            this.headers = {...this.headers, ...config.customHeaders};
+        }
+    }
 
-        return headers;
+    private getAuthToken(): string | null {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem("_at");
+        }
+        return null;
+    }
+
+    private buildAxiosConfig(config?: HeaderConfigProps): AxiosRequestConfig {
+        const axiosConfig: AxiosRequestConfig = {
+            headers: this.headers,
+        };
+        if (config?.params) {
+            axiosConfig.params = config.params;
+        }
+        return axiosConfig;
     }
 
     async postRequest<TResponse = any, TBody = any>({
@@ -37,24 +62,28 @@ class HttpServices {
                                                         data,
                                                         config,
                                                     }: RequestProps<TBody>): Promise<TResponse> {
-        const headers = this.buildHeaders(config);
-        const response = await axiosInstance.post(url, data, {
-            headers,
-            params: config?.params,
-        });
-        return response.data;
+        try {
+            this.setHeaders(config);
+            const axiosConfig = this.buildAxiosConfig(config);
+            return await axiosInstance.post(url, data, axiosConfig);
+        } catch (error) {
+            console.error(`POST request failed for ${url}:`, error);
+            throw error;
+        }
     }
 
     async getRequest<TResponse = any>({
                                           url,
                                           config,
-                                      }: RequestProps): Promise<TResponse> {
-        const headers = this.buildHeaders(config);
-        const response = await axiosInstance.get(url, {
-            headers,
-            params: config?.params,
-        });
-        return response.data;
+                                      }: Omit<RequestProps, 'data'>): Promise<TResponse> {
+        try {
+            this.setHeaders(config);
+            const axiosConfig = this.buildAxiosConfig(config);
+            return await axiosInstance.get(url, axiosConfig);
+        } catch (error) {
+            console.error(`GET request failed for ${url}:`, error);
+            throw error;
+        }
     }
 
     async putRequest<TResponse = any, TBody = any>({
@@ -62,25 +91,42 @@ class HttpServices {
                                                        data,
                                                        config,
                                                    }: RequestProps<TBody>): Promise<TResponse> {
-        const headers = this.buildHeaders(config);
-        const response = await axiosInstance.put(url, data, {
-            headers,
-            params: config?.params,
-        });
-        return response.data;
+        try {
+            this.setHeaders(config);
+            const axiosConfig = this.buildAxiosConfig(config);
+            return await axiosInstance.put(url, data, axiosConfig);
+        } catch (error) {
+            console.error(`PUT request failed for ${url}:`, error);
+            throw error;
+        }
     }
 
-    async deleteRequest<TResponse = any>({
-                                             url,
-                                             config,
-                                         }: RequestProps): Promise<TResponse> {
-        const headers = this.buildHeaders(config);
-        const response = await axiosInstance.delete(url, {
-            headers,
-            params: config?.params,
-        });
-        return response.data;
+    async patchRequest<TResponse = any, TBody = any>({
+                                                         url,
+                                                         data,
+                                                         config,
+                                                     }: RequestProps<TBody>): Promise<TResponse> {
+        try {
+            this.setHeaders(config);
+            const axiosConfig = this.buildAxiosConfig(config);
+            return await axiosInstance.patch(url, data, axiosConfig);
+        } catch (error) {
+            console.error(`PATCH request failed for ${url}:`, error);
+            throw error;
+        }
     }
+
+    async deleteRequest<TResponse = any, TBody = any>({
+                                                          url,
+                                                          data,
+                                                          config,
+                                                      }: RequestProps<TBody>): Promise<TResponse> {
+        this.setHeaders(config);
+        const axiosConfig = {...this.buildAxiosConfig(config), data};
+        return axiosInstance.delete(url, axiosConfig);
+    }
+
+
 }
 
-export default HttpServices;
+export default HttpServices

@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
+import { useMemo, useCallback } from "react"
 import {
     Select,
     SelectContent,
@@ -8,28 +8,29 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
-type SelectValueType = string | number;
+type SelectValueType = string | number
 
 interface Option {
-    value: SelectValueType;
-    label: string;
+    value: SelectValueType
+    label: string
 }
 
-interface SelectInputProps {
-    label?: string;
-    placeholder: string;
-    name?: string;
-    required?: boolean;
-    options: Option[];
-    className?: string;
-    error?: string;
-    value?: SelectValueType;
-    onChange: (value: SelectValueType) => void;
-    [key: string]: any;
+interface SelectInputFieldProps {
+    label?: string
+    placeholder?: string
+    name?: string
+    required?: boolean
+    options: Option[]
+    className?: string
+    error?: string
+    value?: SelectValueType
+    onChangeAction: (value: SelectValueType) => void
+    disabled?: boolean
+    [key: string]: any
 }
 
 export default function SelectInputField({
@@ -41,27 +42,47 @@ export default function SelectInputField({
                                              className,
                                              error,
                                              value,
-                                             onChange,
+                                             onChangeAction,
+                                             disabled = false,
                                              ...props
-                                         }: SelectInputProps) {
-    const stringValue = value !== undefined && value !== null ? String(value) : undefined;
-    const [selectedValue, setSelectedValue] = useState<string | undefined>(stringValue);
+                                         }: SelectInputFieldProps) {
+    const stringValue = value !== undefined && value !== null && value !== ""
+        ? String(value)
+        : ""
 
-    useEffect(() => {
-        setSelectedValue(stringValue);
-    }, [stringValue]);
+    const sanitizedOptions = useMemo(
+        () =>
+            Array.from(
+                new Map(
+                    options
+                        .filter((opt) =>
+                            opt.value !== undefined &&
+                            opt.value !== null &&
+                            opt.value !== ""
+                        )
+                        .map((opt) => [String(opt.value), opt])
+                ).values()
+            ),
+        [options]
+    )
 
-    const handleValueChange = (val: string) => {
-        setSelectedValue(val);
-        const matched = options.find((opt) => String(opt.value) === val);
-        if (matched) {
-            onChange(matched.value);
-        } else {
-            onChange(val);
-        }
-    };
+    const handleValueChange = useCallback(
+        (val: string) => {
+            if (val === "") {
+                onChangeAction("")
+                return
+            }
 
-    const errorId = error && name ? `${name}-error` : undefined;
+            const matched = sanitizedOptions.find((opt) => String(opt.value) === val)
+            const originalValue = matched?.value
+            if (originalValue !== undefined) {
+                onChangeAction(originalValue)
+            }
+        },
+        [sanitizedOptions, onChangeAction]
+    )
+
+    const errorId = error && name ? `${name}-error` : undefined
 
     return (
         <div className="space-y-2">
@@ -71,28 +92,34 @@ export default function SelectInputField({
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                     {label}
-                    {required && <span className="text-red-500 ml-1">*</span>}
+                    {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
                 </Label>
             )}
-            <Select value={selectedValue} onValueChange={handleValueChange} {...props}>
+            <Select
+                value={stringValue}
+                onValueChange={handleValueChange}
+                disabled={disabled}
+                {...props}
+            >
                 <SelectTrigger
                     id={name}
-                    aria-label={label}
+                    aria-label={label || placeholder}
                     aria-required={required}
                     aria-invalid={!!error}
                     aria-describedby={errorId}
+                    disabled={disabled}
                     className={cn(
-                        "w-full border border-input focus-visible:ring-0",
-                        error && "border-red-500 focus:ring-red-500 ring-offset-red-500",
+                        "w-full",
+                        error && "border-red-500 focus-visible:ring-red-500",
                         className
                     )}
                 >
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
-                <SelectContent className="border border-input max-w-[380px]">
+                <SelectContent>
                     <SelectGroup>
-                        {options.map(({ value: optionValue, label: optionLabel }) => (
-                            <SelectItem key={String(optionValue)} value={String(optionValue)} className="whitespace-normal break-words text-sm leading-snug">
+                        {sanitizedOptions.map(({ value: optionValue, label: optionLabel }) => (
+                            <SelectItem key={String(optionValue)} value={String(optionValue)}>
                                 {optionLabel}
                             </SelectItem>
                         ))}
@@ -100,10 +127,10 @@ export default function SelectInputField({
                 </SelectContent>
             </Select>
             {error && (
-                <p id={errorId} className="text-sm text-red-500 mt-1">
+                <p id={errorId} className="text-sm text-red-500 mt-1" role="alert">
                     {error}
                 </p>
             )}
         </div>
-    );
+    )
 }
