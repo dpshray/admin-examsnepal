@@ -1,7 +1,7 @@
 import HttpService from "@/service/http.service";
 
 class StudentService extends HttpService {
-    async getAllStudents(params: { [key: string]: any } = {}, page: number = 1) {
+    async getAllStudents(params:any) {
         try {
             const response = await this.getRequest({
                 url: "/all-students",
@@ -9,7 +9,6 @@ class StudentService extends HttpService {
                     auth: true,
                     params: {
                         ...params,
-                        page,
                     },
                 }
             });

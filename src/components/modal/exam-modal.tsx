@@ -1,6 +1,6 @@
 "use client"
 
-import {memo, useCallback, useEffect, useMemo} from "react"
+import {memo, useCallback, useEffect, useMemo, useState} from "react"
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"
@@ -94,6 +94,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                                                              initialData,
                                                              onSuccessAction,
                                                          }: ExamModalProps) {
+    const [isFetchingData, setIsFetchingData] = useState(false)
     const {data: examTypesData, isLoading: examTypesLoading, error: examTypesError} = useExamTypes()
     const {data: examCategories, isLoading: categoriesLoading, error: categoriesError} = useExamCategories()
 
@@ -137,6 +138,39 @@ export const ExamModalForm = memo(function ExamModalForm({
         onClose()
     }, [onClose, reset])
 
+    useEffect(() => {
+        const fetchExamData = async () => {
+            if (!isOpen || mode !== "update" || !initialData?.id) return
+
+            setIsFetchingData(true)
+            try {
+                const response:any = await examService.getExamDetails(initialData.id)
+                console.log(response.is_negative_marking)
+                if (response) {
+                    reset(response)
+
+                }
+            } catch (error: any) {
+                toast.error(error?.response?.data?.message || "Failed to load exam details")
+            } finally {
+                setIsFetchingData(false)
+            }
+        }
+
+        fetchExamData()
+    }, [isOpen, mode, initialData?.id, reset])
+
+    useEffect(() => {
+        if (!isOpen || mode !== "create") return
+
+        if (examTypesData?.length > 0) {
+            setValue("exam_type_id", examTypesData[0].id)
+        }
+        if (examCategories?.length > 0) {
+            setValue("category_type", examCategories[0].id)
+        }
+    }, [isOpen, mode, examTypesData, examCategories, setValue])
+
     const handleSubmit = useCallback(
         async (data: ExamFormData) => {
             try {
@@ -158,31 +192,7 @@ export const ExamModalForm = memo(function ExamModalForm({
         [mode, initialData?.id, onSuccessAction, handleClose]
     )
 
-    useEffect(() => {
-        if (!isOpen) return
-        if (mode === "create") {
-            if (examTypesData?.length > 0) setValue("exam_type_id", examTypesData[0].id)
-            if (examCategories?.length > 0) setValue("category_type", examCategories[0].id)
-        } else if (mode === "update" && initialData) {
-            ;[
-                "exam_type_id",
-                "category_type",
-                "exam_name",
-                "description",
-                "publish",
-                "assign",
-                "live",
-                "is_negative_marking",
-                "negative_marking_point",
-                "points_per_question",
-            ].forEach((field) => {
-                const value = initialData[field as keyof ExamFormData]
-                if (value !== undefined) setValue(field as keyof ExamFormData, value)
-            })
-        }
-    }, [isOpen, mode, initialData, examTypesData, examCategories, setValue])
-
-    const isLoading = examTypesLoading || categoriesLoading
+    const isLoading = examTypesLoading || categoriesLoading || isFetchingData
     const hasError = !!(examTypesError || categoriesError)
 
     return (

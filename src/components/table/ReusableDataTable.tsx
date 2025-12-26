@@ -1,6 +1,6 @@
 "use client"
 
-import React, {memo, type ReactNode, useCallback, useEffect, useId, useRef, useState} from "react"
+import React, {memo, type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState} from "react"
 import {
     type ColumnDef,
     type ColumnFiltersState,
@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import {Pagination, PaginationContent, PaginationEllipsis, PaginationItem} from "@/components/ui/pagination"
 import {cn, generatePageRange} from "@/lib/utils"
-import {useDebounce} from "@/hooks/use-Debounce";
+import {useDebounce} from "@/hooks/use-Debounce"
 
 
 interface DataTablePagination {
@@ -73,12 +73,15 @@ interface DataTableProps<TData, TValue> {
     enableRowSelection?: boolean
     enableSorting?: boolean
     onSearchAction?: (value: string) => void
+    onColumnFiltersChange?: (filters: ColumnFiltersState) => void
     totalCount?: number
     actionLabel?: string
     enableExpanding?: boolean
     getRowCanExpand?: (row: Row<TData>) => boolean
     renderSubComponent?: (row: Row<TData>) => ReactNode
     children?: ReactNode
+    error?: string | null
+    onRetry?: () => void
 }
 
 const SkeletonRow = memo(({columnCount}: { columnCount: number }) => (
@@ -111,6 +114,33 @@ const EmptyRow = memo(({columnCount, noDataText}: { columnCount: number; noDataT
 
 EmptyRow.displayName = "EmptyRow"
 
+const ErrorRow = memo(({columnCount, error, onRetry}: { columnCount: number; error: string; onRetry?: () => void }) => (
+    <TableRow className="hover:bg-transparent">
+        <TableCell colSpan={columnCount} className="h-32 sm:h-40 text-center px-2 sm:px-4">
+            <div
+                className="flex flex-col items-center justify-center gap-2 sm:gap-3 animate-in fade-in-50 zoom-in-95 duration-300">
+                <div
+                    className="flex h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-50 to-red-100 ring-1 ring-red-200/50">
+                    <CircleAlert className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-red-500" aria-hidden="true"/>
+                </div>
+                <div className="text-xs sm:text-sm md:text-base font-medium text-gray-600 px-4">{error}</div>
+                {onRetry && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onRetry}
+                        className="text-xs sm:text-sm"
+                    >
+                        Try Again
+                    </Button>
+                )}
+            </div>
+        </TableCell>
+    </TableRow>
+))
+
+ErrorRow.displayName = "ErrorRow"
+
 export function ReusableDataTable<TData, TValue>({
                                                      data,
                                                      columns,
@@ -128,11 +158,14 @@ export function ReusableDataTable<TData, TValue>({
                                                      enableRowSelection = true,
                                                      enableSorting = true,
                                                      onSearchAction,
+                                                     onColumnFiltersChange,
                                                      actionLabel = "Add",
                                                      enableExpanding = false,
                                                      getRowCanExpand,
                                                      renderSubComponent,
                                                      children,
+                                                     error,
+                                                     onRetry,
                                                  }: DataTableProps<TData, TValue>) {
     const id = useId()
     const inputRef = useRef<HTMLInputElement>(null)
@@ -149,10 +182,20 @@ export function ReusableDataTable<TData, TValue>({
         }
     }, [debouncedSearch, onSearchAction])
 
+    useEffect(() => {
+        if (onColumnFiltersChange) {
+            onColumnFiltersChange(columnFilters)
+        }
+    }, [columnFilters, onColumnFiltersChange])
+
     const handleSearchChange = useCallback((value: string) => {
         setSearch(value)
         pagination.onPageChangeAction(1)
-    }, [pagination])
+    }, [pagination.onPageChangeAction])
+
+    const handleColumnFiltersChange = useCallback((updater: ColumnFiltersState | ((old: ColumnFiltersState) => ColumnFiltersState)) => {
+        setColumnFilters(updater)
+    }, [])
 
     const table = useReactTable({
         data,
@@ -163,7 +206,7 @@ export function ReusableDataTable<TData, TValue>({
         onSortingChange: enableSorting ? setSorting : undefined,
         onExpandedChange: enableExpanding ? setExpanded : undefined,
         enableSortingRemoval: false,
-        onColumnFiltersChange: setColumnFilters,
+        onColumnFiltersChange: handleColumnFiltersChange,
         getFacetedUniqueValues: getFacetedUniqueValues(),
         manualPagination: true,
         pageCount: pagination.totalPages,
@@ -200,13 +243,13 @@ export function ReusableDataTable<TData, TValue>({
         if (page > 0 && page <= totalPages) {
             pagination.onPageChangeAction(page)
         }
-    }, [totalPages, pagination])
+    }, [totalPages, pagination.onPageChangeAction])
 
     const clearSearch = useCallback(() => {
         setSearch("")
         pagination.onPageChangeAction(1)
         inputRef.current?.focus()
-    }, [pagination])
+    }, [pagination.onPageChangeAction])
 
     const handleSortingClick = useCallback((handler: any) => (e: React.MouseEvent) => {
         e.preventDefault()
@@ -220,7 +263,11 @@ export function ReusableDataTable<TData, TValue>({
         }
     }, [])
 
-    const pageRange = generatePageRange(currentPage, totalPages)
+    const pageRange = useMemo(
+        () => generatePageRange(currentPage, totalPages),
+        [currentPage, totalPages]
+    )
+
     const showPagination = totalPages > 1
     const hasSearch = Boolean(search)
     const hasSelectedRows = selectedRows.length > 0
@@ -389,6 +436,8 @@ export function ReusableDataTable<TData, TValue>({
                                 Array.from({length: currentPageSize}).map((_, i) => (
                                     <SkeletonRow key={i} columnCount={columns.length}/>
                                 ))
+                            ) : error ? (
+                                <ErrorRow columnCount={columns.length} error={error} onRetry={onRetry}/>
                             ) : table.getRowModel().rows.length > 0 ? (
                                 table.getRowModel().rows.map((row) => (
                                     <React.Fragment key={row.id}>

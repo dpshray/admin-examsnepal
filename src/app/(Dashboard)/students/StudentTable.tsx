@@ -65,6 +65,8 @@ export function StudentsDataTable() {
         ]
     }, [examTypes])
 
+    console.log('Current Page:',currentPage)
+    console.log('Data:',data)
     const students = data?.data ?? []
     const totalPages = data?.last_page ?? 1
     const totalCount = data?.total ?? 0
