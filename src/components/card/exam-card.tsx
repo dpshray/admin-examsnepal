@@ -4,7 +4,7 @@ import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components
 import {Button} from "@/components/ui/button";
 import {Badge} from "@/components/ui/badge";
 import {BookOpen, Eye, EyeOff, Pencil, Trash2, Upload} from "lucide-react";
-import {memo, useCallback, useState} from "react";
+import {memo, useCallback, useMemo, useState} from "react";
 import {DeleteDialog} from "@/components/modal/delete-model";
 import {ExamModalForm} from "@/components/modal/exam-modal";
 import {examService} from "@/service/exam.service";
@@ -29,61 +29,57 @@ export interface Exam {
     description: string;
     assign: number;
     total_questions: number;
-    negative_marking?: number;
+    is_negative_marking?: boolean;
+    negative_marking_point?: number;
+    points_per_question: number;
 }
 
 export interface ExamCardProps {
-    id: number;
-    publish: number;
-    exam_type: ExamType;
-    exam_name: string;
-    total_questions: number;
-    hasQuestions?: boolean;
-    onUploadQuestions: (id: number) => void;
-    description?: string;
-    exam_type_id?: number;
-    category_type?: CategoryType;
-    assign?: number;
-    live?: number;
+    exams: Exam;
     onDeleteAction?: () => void;
     onUpdatedAction?: () => void;
-    negative_marking?: number;
+    onUploadQuestions: (id: number) => void;
 }
 
+const InfoRow = memo(function InfoRow({label, value}: { label: string; value: string | React.ReactNode }) {
+    return (
+        <div className="flex justify-between items-center text-xs sm:text-sm gap-2" role="listitem">
+            <span className="text-muted-foreground whitespace-nowrap font-normal">{label}:</span>
+            <span className="font-medium text-right break-words max-w-[60%] min-w-0 leading-snug">
+                {value}
+            </span>
+        </div>
+    );
+});
+
 export const ExamCard = memo(function ExamCard({
-                                                   id,
-                                                   publish,
-                                                   exam_type,
-                                                   exam_name,
-                                                   total_questions,
-                                                   negative_marking,
-                                                   hasQuestions = false,
-                                                   onUploadQuestions,
-                                                   description,
-                                                   exam_type_id,
-                                                   category_type,
-                                                   assign,
-                                                   live,
+                                                   exams,
                                                    onDeleteAction,
                                                    onUpdatedAction,
+                                                   onUploadQuestions,
                                                }: ExamCardProps) {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [updateOpen, setUpdateOpen] = useState(false);
 
-    const isPublished = Boolean(publish);
-    const hasNegativeMarking = Boolean(negative_marking);
-
-    const examData = {
+    const {
         id,
+        published,
+        exam_type,
         exam_name,
-        description: description || "",
-        exam_type_id: exam_type_id ?? exam_type.id,
-        category_type: category_type?.id ?? 1,
-        publish,
-        assign: assign ?? 0,
-        live: live ?? 0,
-        negative_marking: negative_marking ?? 0,
-    };
+        total_questions,
+        is_negative_marking,
+        negative_marking_point,
+        points_per_question,
+        description,
+        category_type,
+        assign,
+        live,
+    } = exams;
+
+    const isPublished = useMemo(() => Boolean(published), [published]);
+    const hasNegativeMarking = useMemo(() => Boolean(is_negative_marking), [is_negative_marking]);
+    const hasQuestions = useMemo(() => total_questions > 0, [total_questions]);
+
 
     const handleDelete = useCallback(async () => {
         try {
@@ -105,18 +101,24 @@ export const ExamCard = memo(function ExamCard({
     const handleCloseUpdate = useCallback(() => setUpdateOpen(false), []);
     const handleUploadQuestions = useCallback(() => onUploadQuestions(id), [id, onUploadQuestions]);
 
+    const publishBadgeClasses = useMemo(() =>
+        `flex items-center gap-1.5 whitespace-nowrap text-xs font-medium ${
+            isPublished ? "bg-green-500 hover:bg-green-600 text-white" : ""
+        }`, [isPublished]
+    );
+
     return (
         <>
             <Card
                 className="flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:scale-[1.02]"
                 role="article"
-                aria-label={`Exam: ${exam_name}`}
+                aria-labelledby={`exam-title-${id}`}
             >
                 <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-3">
                         <CardTitle
+                            id={`exam-title-${id}`}
                             className="text-base sm:text-lg font-semibold leading-tight line-clamp-2 break-words flex-1 min-w-0"
-                            title={exam_name}
                         >
                             {exam_name}
                         </CardTitle>
@@ -124,10 +126,8 @@ export const ExamCard = memo(function ExamCard({
                         <div className="flex items-center gap-2 shrink-0">
                             <Badge
                                 variant={isPublished ? "default" : "secondary"}
-                                className={`flex items-center gap-1.5 whitespace-nowrap text-xs font-medium ${
-                                    isPublished ? "bg-green-500 hover:bg-green-600 text-white" : ""
-                                }`}
-                                aria-label={isPublished ? "Published status" : "Draft status"}
+                                className={publishBadgeClasses}
+                                aria-label={isPublished ? "Published" : "Draft"}
                             >
                                 {isPublished ? (
                                     <>
@@ -169,12 +169,12 @@ export const ExamCard = memo(function ExamCard({
                 <CardContent className="flex-1 space-y-4 pb-3">
                     <p
                         className="text-sm leading-relaxed text-muted-foreground line-clamp-3 break-words"
-                        title={description || "No description available"}
+                        aria-label="Exam description"
                     >
                         {description || "No description available"}
                     </p>
 
-                    <div className="space-y-2.5" role="list">
+                    <div className="space-y-2.5" role="list" aria-label="Exam details">
                         <InfoRow label="Type ID" value={exam_type.id.toString()}/>
                         <InfoRow label="Category" value={category_type?.name ?? "None"}/>
                         <InfoRow label="Exam Type" value={exam_type.name}/>
@@ -184,6 +184,7 @@ export const ExamCard = memo(function ExamCard({
                                 <Badge
                                     variant={hasQuestions ? "default" : "outline"}
                                     className="text-xs font-medium"
+                                    aria-label={hasQuestions ? "Questions available" : "No questions"}
                                 >
                                     {hasQuestions ? "Available" : "None"}
                                 </Badge>
@@ -191,16 +192,27 @@ export const ExamCard = memo(function ExamCard({
                         />
                         <InfoRow label="Total Questions" value={total_questions.toString()}/>
                         <InfoRow
+                            label="Points Per Question"
+                            value={points_per_question?.toString() ?? "N/A"}
+                        />
+                        <InfoRow
                             label="Negative Marking"
                             value={
                                 <Badge
                                     variant={hasNegativeMarking ? "default" : "outline"}
                                     className="text-xs font-medium"
+                                    aria-label={hasNegativeMarking ? "Negative marking enabled" : "Negative marking disabled"}
                                 >
                                     {hasNegativeMarking ? "Enabled" : "Disabled"}
                                 </Badge>
                             }
                         />
+                        {hasNegativeMarking && negative_marking_point !== undefined && (
+                            <InfoRow
+                                label="Negative Points"
+                                value={negative_marking_point.toString()}
+                            />
+                        )}
                     </div>
                 </CardContent>
 
@@ -230,8 +242,8 @@ export const ExamCard = memo(function ExamCard({
                 isOpen={updateOpen}
                 onClose={handleCloseUpdate}
                 mode="update"
-                initialData={examData}
                 onSuccessAction={handleUpdateSuccess}
+                examId={exams.id}
             />
 
             <DeleteDialog
@@ -243,21 +255,5 @@ export const ExamCard = memo(function ExamCard({
                 itemName={exam_name}
             />
         </>
-    );
-});
-
-interface InfoRowProps {
-    label: string;
-    value: string | React.ReactNode;
-}
-
-const InfoRow = memo(function InfoRow({label, value}: InfoRowProps) {
-    return (
-        <div className="flex justify-between items-center text-xs sm:text-sm gap-2" role="listitem">
-            <span className="text-muted-foreground whitespace-nowrap font-normal">{label}:</span>
-            <span className="font-medium text-right wrap-break-word max-w-[60%] min-w-0 leading-snug">
-                {value}
-            </span>
-        </div>
     );
 });
