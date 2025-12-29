@@ -5,7 +5,7 @@ import {useRouter} from "next/navigation"
 import {Button} from "@/components/ui/button"
 import {Alert, AlertDescription} from "@/components/ui/alert"
 import {AlertCircle, BookOpen} from "lucide-react"
-import {ExamCard} from "@/components/card/exam-card"
+import {ExamCard, Exam} from "@/components/card/exam-card"
 import {examService} from "@/service/exam.service"
 import CustomPagination from "@/components/Custom-Pagination"
 import ExamSkeletonCard from "@/components/skeleton/ExamSkeletonCard"
@@ -34,22 +34,20 @@ export default function ExamDashboard() {
                 per_page: 12,
             }
 
-            if (examType && examType !== "") {
-                params.exam_type = examType
+            if (examType) {
+                params.exam_type_id = examType
             }
 
-            if (categoryType && categoryType !== "") {
-                params.category_type = categoryType
+            if (categoryType) {
+                params.category_type_id = categoryType
             }
 
             return await examService.getAllExams(params)
         },
     })
 
-    const exams = examsData?.data ?? []
-
-    console.log("Exams ", exams)
-    const totalPages = examsData?.last_page ?? 1
+    const exams = useMemo(() => examsData?.data ?? [], [examsData?.data])
+    const totalPages = useMemo(() => examsData?.last_page ?? 1, [examsData?.last_page])
 
     const examTypeOptions = useMemo(() => {
         if (!examTypesData || examTypesData.length === 0) return []
@@ -86,13 +84,13 @@ export default function ExamDashboard() {
         queryClient.invalidateQueries({queryKey: ["exams"]})
     }, [queryClient])
 
-    const handleUploadQuestions = useCallback((id: string | number) => {
+    const handleUploadQuestions = useCallback((id: number) => {
         router.push(`/exam/${id}`)
     }, [router])
 
     const handleDeleteExam = useCallback(async () => {
-        refetch()
-    }, [])
+        await refetch()
+    }, [refetch])
 
     const handleExamTypeChange = useCallback((value: string | number) => {
         setExamType(value)
@@ -171,19 +169,10 @@ export default function ExamDashboard() {
                 ) : exams.length > 0 ? (
                     <section aria-label="Exam list">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            {exams.map((exam: any) => (
+                            {exams.map((exam: Exam) => (
                                 <ExamCard
                                     key={exam.id}
-                                    id={exam.id}
-                                    publish={exam.published}
-                                    exam_type={exam.exam_type}
-                                    exam_name={exam.exam_name}
-                                    category_type={exam.category_type}
-                                    total_questions={exam.total_questions}
-                                    hasQuestions={exam.total_questions > 0}
-                                    description={exam.description}
-                                    assign={exam.assign}
-                                    live={exam.live}
+                                    exams={exam}
                                     onUploadQuestions={handleUploadQuestions}
                                     onDeleteAction={handleDeleteExam}
                                     onUpdatedAction={handleExamUpdated}
