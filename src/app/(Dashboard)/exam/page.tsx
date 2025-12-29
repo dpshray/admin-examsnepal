@@ -5,15 +5,16 @@ import {useRouter} from "next/navigation"
 import {Button} from "@/components/ui/button"
 import {Alert, AlertDescription} from "@/components/ui/alert"
 import {AlertCircle, BookOpen} from "lucide-react"
-import {ExamCard, Exam} from "@/components/card/exam-card"
+import {ExamCard, Exam} from "@/components/Exam/exam-card"
 import {examService} from "@/service/exam.service"
 import CustomPagination from "@/components/Custom-Pagination"
 import ExamSkeletonCard from "@/components/skeleton/ExamSkeletonCard"
 import {useQuery, useQueryClient} from "@tanstack/react-query"
-import {ExamModalForm} from "@/components/modal/exam-modal"
+
 import {useExamTypes} from "@/hooks/useExamTypes"
 import {useExamCategories} from "@/hooks/useExamCategories"
 import SelectInputField from "@/components/field/SelectInputField"
+import {ExamModalForm} from "@/components/Exam/exam-modal-form";
 
 export default function ExamDashboard() {
     const router = useRouter()
