@@ -1,98 +1,89 @@
-'use client'
-import React, {useState} from "react"
+"use client"
+
+import * as React from "react"
+import {useId} from "react"
+import {Eye, EyeOff} from "lucide-react"
+import {cn} from "@/lib/utils"
+import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
-import {cn} from "@/lib/utils"
-import {Eye, EyeOff} from "lucide-react"
-import {Button} from "@/components/ui/button"
 
-interface PassWordInputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    name: string
+interface PasswordInputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string
-    placeholder?: string
-    required?: boolean
-    className?: string
-    icon?: React.ElementType
     error?: string
-    type?: 'password' | 'text',
+    icon?: React.ElementType
 }
 
 export default function PasswordInputField({
-                                               name,
-                                               label,
-                                               placeholder,
-                                               required = false,
                                                className,
-                                               icon: Icon,
+                                               label,
                                                error,
-
+                                               icon: Icon,
+                                               required,
                                                ...props
-                                           }: PassWordInputFieldProps) {
-    const [showPassword, setShowPassword] = useState(false)
+                                           }: PasswordInputFieldProps) {
+    const id = useId()
+    const [showPassword, setShowPassword] = React.useState(false)
 
     const togglePasswordVisibility = () => {
-        setShowPassword(prevState => !prevState)
+        setShowPassword(!showPassword)
     }
 
     return (
-        <div className="space-y-2">
+        <div className="w-full space-y-2">
             {label && (
                 <Label
-                    htmlFor={name}
-                    className={cn("text-sm font-medium", error && "text-red-500")}
+                    htmlFor={id}
+                    className={cn(
+                        "text-sm font-medium",
+                        error && "text-destructive"
+                    )}
                 >
                     {label}
-                    {required && <span className="text-red-500">*</span>}
+                    {required && <span className="text-destructive ml-1">*</span>}
                 </Label>
             )}
-
             <div className="relative">
                 {Icon && (
-                    <div
-                        className={cn(
-                            "absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground",
-                            error && "text-red-500"
-                        )}
-                    >
-                        <Icon size={16} aria-hidden="true"/>
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        <Icon className="h-4 w-4" aria-hidden="true"/>
                     </div>
                 )}
-
                 <Input
-                    id={name}
-                    name={name}
-                    type={showPassword ? 'text' : 'password'} // Toggle password visibility
-                    placeholder={placeholder}
+                    id={id}
+                    type={showPassword ? "text" : "password"}
                     required={required}
-                    tabIndex={0}
-                    autoComplete="current-password"
-                    autoCorrect="off"
                     className={cn(
-                        '',
-                        Icon ? "pl-10" : "pl-3",
-                        error && "border-red-500 focus-visible:ring-red-500 !focus-visible:ring-[1px] ",
+                        "pr-10",
+                        Icon && "pl-10",
+                        error && "border-destructive focus-visible:ring-destructive",
                         className
                     )}
+                    aria-invalid={error ? "true" : "false"}
+                    aria-describedby={error ? `${id}-error` : undefined}
                     {...props}
                 />
-
                 <Button
                     type="button"
-                    variant={'ghost'}
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={togglePasswordVisibility}
-                    aria-label="Toggle password visibility"
-                    tabIndex={0}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer hover:bg-transparent"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    tabIndex={-1}
                 >
                     {showPassword ? (
-                        <EyeOff size={16} aria-hidden="true" className={cn('text-muted-foreground')}/>
+                        <EyeOff className="h-4 w-4 text-muted-foreground"/>
                     ) : (
-                        <Eye size={16} aria-hidden="true" className={cn('text-muted-foreground','data-[ ]:')}/>
+                        <Eye className="h-4 w-4 text-muted-foreground"/>
                     )}
                 </Button>
-
-                {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
             </div>
+            {error && (
+                <p id={`${id}-error`} className="text-sm text-destructive">
+                    {error}
+                </p>
+            )}
         </div>
     )
 }

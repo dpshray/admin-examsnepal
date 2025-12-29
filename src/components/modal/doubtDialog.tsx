@@ -131,6 +131,7 @@ export default function ResolveDoubtDialog({
             textarea
             value={question}
             onChange={(e: any) => setQuestion(e.target.value)}
+            disabled
             required
           />
 

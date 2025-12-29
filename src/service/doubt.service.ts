@@ -1,15 +1,14 @@
 import HttpService from "@/service/http.service";
 
 class DoubtService extends HttpService {
-    async getAllDoubts(params: { [key: string]: any } = {}, page: number = 1) {
+    async getAllDoubts(params: any) {
         try {
             const response = await this.getRequest({
                 url: "/doubtslist",
-                config: { 
+                config: {
                     auth: true,
                     params: {
                         ...params,
-                        page,
                     }
                 }
             });
@@ -23,9 +22,9 @@ class DoubtService extends HttpService {
     async resolveDoubt(doubtId: number, payload: any) {
         try {
             const response = await this.postRequest({
-            url: `/doubtsresolve/${doubtId}`,
-            data: payload,
-            config: { auth: true }
+                url: `/doubtsresolve/${doubtId}`,
+                data: payload,
+                config: {auth: true}
             });
             return response;
         } catch (err) {

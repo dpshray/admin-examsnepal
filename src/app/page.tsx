@@ -39,7 +39,7 @@ export default function LoginPage() {
     const submitForm = async (data: LoginFormData) => {
         try {
             const response = await authService.login(data);
-
+            console.log("Response From", response);
             if (response?.token) {
                 localStorage.setItem("_at", response?.token);
                 toast.success("Login successful");
