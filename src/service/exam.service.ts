@@ -41,7 +41,7 @@ class ExamService extends HttpService {
         }
     }
 
-    async getAllExams(params: { [key: string]: any } = {}, page: number = 1) {
+    async getAllExams(params: { [key: string]: any } = {}) {
         try {
             const response = await this.getRequest({
                 url: "/teacher/exam",
@@ -49,7 +49,6 @@ class ExamService extends HttpService {
                     auth: true,
                     params: {
                         ...params,
-                        page,
                     },
                 }
             });

@@ -31,6 +31,7 @@ export interface Exam {
     is_negative_marking?: boolean;
     negative_marking_point?: number;
     points_per_question: number;
+    duration?: number;
 }
 
 export interface ExamCardProps {
@@ -71,8 +72,7 @@ export const ExamCard = memo(function ExamCard({
         points_per_question,
         description,
         category_type,
-        assign,
-        live,
+        duration
     } = exams;
 
     const isPublished = useMemo(() => Boolean(published), [published]);
@@ -166,13 +166,18 @@ export const ExamCard = memo(function ExamCard({
 
                 <div className="flex-1 p-3 sm:p-4 space-y-4">
                     <p
-                        className="text-sm leading-relaxed text-muted-foreground line-clamp-3 break-words"
+                        className="text-sm leading-relaxed text-muted-foreground line-clamp-3 wrap-break-word"
                         aria-label="Exam description"
                     >
                         {description || "No description available"}
                     </p>
 
                     <div className="space-y-2.5" role="list" aria-label="Exam details">
+                        <InfoRow
+                            label="Duration (Minutes)"
+                            value={duration !== null && duration !== undefined ? `${duration} Min` : "N/A"}
+                        />
+
                         <InfoRow label="Type ID" value={exam_type.id.toString()}/>
                         <InfoRow label="Category" value={category_type?.name ?? "None"}/>
                         <InfoRow label="Exam Type" value={exam_type.name}/>

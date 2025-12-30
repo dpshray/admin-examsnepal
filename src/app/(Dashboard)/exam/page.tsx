@@ -33,17 +33,13 @@ export default function ExamDashboard() {
             const params: Record<string, any> = {
                 page: currentPage,
                 per_page: 12,
+                exam_type: examType,
+                category_type: categoryType,
             }
-
-            if (examType) {
-                params.exam_type_id = examType
-            }
-
-            if (categoryType) {
-                params.category_type_id = categoryType
-            }
-
-            return await examService.getAllExams(params)
+            console.log(params)
+            const res=await examService.getAllExams(params)
+            console.log(res)
+            return res
         },
     })
 
@@ -72,6 +68,8 @@ export default function ExamDashboard() {
         ]
     }, [examCategories])
 
+    console.log('examCategoriesOptions', examCategoriesOptions)
+
     const handlePageChange = useCallback((page: number) => {
         setCurrentPage(page)
     }, [])
@@ -96,11 +94,13 @@ export default function ExamDashboard() {
     const handleExamTypeChange = useCallback((value: string | number) => {
         setExamType(value)
         setCurrentPage(1)
+        refetch()
     }, [])
 
     const handleCategoryChange = useCallback((value: string | number) => {
         setCategoryType(value)
         setCurrentPage(1)
+        refetch()
     }, [])
 
     const handleExamUpdated = useCallback(() => {
@@ -142,6 +142,7 @@ export default function ExamDashboard() {
 
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-6">
                     <SelectInputField
+                        label="Exam Type"
                         placeholder="Filter by exam type"
                         options={examTypeOptions}
                         value={examType}
@@ -150,6 +151,7 @@ export default function ExamDashboard() {
                         className="w-full sm:w-64"
                     />
                     <SelectInputField
+                        label={'Category Type'}
                         placeholder="Filter by category"
                         options={examCategoriesOptions}
                         value={categoryType}
