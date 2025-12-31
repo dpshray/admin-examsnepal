@@ -1,13 +1,12 @@
 "use client";
 
-import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Badge} from "@/components/ui/badge";
 import {BookOpen, Eye, EyeOff, Pencil, Trash2, Upload} from "lucide-react";
 import {memo, useCallback, useMemo, useState} from "react";
 import {DeleteDialog} from "@/components/modal/delete-model";
-import {ExamModalForm} from "@/components/modal/exam-modal";
 import {examService} from "@/service/exam.service";
+import {ExamModalForm} from "@/components/Exam/exam-modal-form";
 
 export interface ExamType {
     id: number;
@@ -32,6 +31,7 @@ export interface Exam {
     is_negative_marking?: boolean;
     negative_marking_point?: number;
     points_per_question: number;
+    duration?: number;
 }
 
 export interface ExamCardProps {
@@ -72,14 +72,12 @@ export const ExamCard = memo(function ExamCard({
         points_per_question,
         description,
         category_type,
-        assign,
-        live,
+        duration
     } = exams;
 
     const isPublished = useMemo(() => Boolean(published), [published]);
     const hasNegativeMarking = useMemo(() => Boolean(is_negative_marking), [is_negative_marking]);
     const hasQuestions = useMemo(() => total_questions > 0, [total_questions]);
-
 
     const handleDelete = useCallback(async () => {
         try {
@@ -109,19 +107,19 @@ export const ExamCard = memo(function ExamCard({
 
     return (
         <>
-            <Card
-                className="flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:scale-[1.02]"
+            <article
+                className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.02] overflow-hidden"
                 role="article"
                 aria-labelledby={`exam-title-${id}`}
             >
-                <CardHeader className="pb-3">
+                <header className="p-3 sm:p-4 pb-3 border-b border-gray-100 dark:border-gray-800">
                     <div className="flex items-start justify-between gap-3">
-                        <CardTitle
+                        <h3
                             id={`exam-title-${id}`}
-                            className="text-base sm:text-lg font-semibold leading-tight line-clamp-2 break-words flex-1 min-w-0"
+                            className="text-base sm:text-lg font-semibold leading-tight line-clamp-2 break-words flex-1 min-w-0 text-gray-900 dark:text-gray-100"
                         >
                             {exam_name}
-                        </CardTitle>
+                        </h3>
 
                         <div className="flex items-center gap-2 shrink-0">
                             <Badge
@@ -164,17 +162,22 @@ export const ExamCard = memo(function ExamCard({
                             </div>
                         </div>
                     </div>
-                </CardHeader>
+                </header>
 
-                <CardContent className="flex-1 space-y-4 pb-3">
+                <div className="flex-1 p-3 sm:p-4 space-y-4">
                     <p
-                        className="text-sm leading-relaxed text-muted-foreground line-clamp-3 break-words"
+                        className="text-sm leading-relaxed text-muted-foreground line-clamp-3 wrap-break-word"
                         aria-label="Exam description"
                     >
                         {description || "No description available"}
                     </p>
 
                     <div className="space-y-2.5" role="list" aria-label="Exam details">
+                        <InfoRow
+                            label="Duration (Minutes)"
+                            value={duration !== null && duration !== undefined ? `${duration} Min` : "N/A"}
+                        />
+
                         <InfoRow label="Type ID" value={exam_type.id.toString()}/>
                         <InfoRow label="Category" value={category_type?.name ?? "None"}/>
                         <InfoRow label="Exam Type" value={exam_type.name}/>
@@ -214,9 +217,9 @@ export const ExamCard = memo(function ExamCard({
                             />
                         )}
                     </div>
-                </CardContent>
+                </div>
 
-                <CardFooter className="pt-3">
+                <footer className="p-3 sm:p-4 pt-3 border-t border-gray-100 dark:border-gray-800">
                     <Button
                         onClick={handleUploadQuestions}
                         className="w-full flex items-center justify-center gap-2 font-medium"
@@ -235,8 +238,8 @@ export const ExamCard = memo(function ExamCard({
                             </>
                         )}
                     </Button>
-                </CardFooter>
-            </Card>
+                </footer>
+            </article>
 
             <ExamModalForm
                 isOpen={updateOpen}
