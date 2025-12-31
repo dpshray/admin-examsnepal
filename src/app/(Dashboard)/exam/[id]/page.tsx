@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useState} from "react"
+import React, {useCallback, useState} from "react"
 import {useParams, useRouter} from "next/navigation"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {Button} from "@/components/ui/button"
@@ -40,16 +40,7 @@ export default function ExamQuestionsPage() {
         queryFn: async () => await examService.getExamById(examId, currentPage),
     })
 
-    const deleteMutation = useMutation({
-        mutationFn: async (id: number) => await examService.deleteQuestion(id),
-        onSuccess: () => {
-            toast.success("Question deleted successfully")
-            queryClient.invalidateQueries({queryKey: ["exam-questions", examId]})
-        },
-        onError: () => {
-            toast.error("Failed to delete question")
-        },
-    })
+    console.log('Question',data)
 
     const exam: Exam | null = data?.exam ?? null
     const questions: Question[] = data?.questions?.data ?? []
@@ -70,6 +61,9 @@ export default function ExamQuestionsPage() {
         queryClient.invalidateQueries({queryKey: ["exam-questions", examId]})
         toast.success("Question updated successfully")
     }
+    const handleQuestionDelete=useCallback(async ()=>{
+        queryClient.invalidateQueries({queryKey: ["exam-questions", examId]})
+    },[examId, queryClient])
 
     if (isLoading) {
         return (
@@ -153,6 +147,7 @@ export default function ExamQuestionsPage() {
                                 question={question as any}
                                 index={index}
                                 onUpdatedAction={handleQuestionUpdated}
+                                onDeleteAction={handleQuestionDelete}
                             />
                         ))}
                         <CustomPagination
