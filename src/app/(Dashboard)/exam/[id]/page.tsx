@@ -61,9 +61,13 @@ export default function ExamQuestionsPage() {
         queryClient.invalidateQueries({queryKey: ["exam-questions", examId]})
         toast.success("Question updated successfully")
     }
-    const handleQuestionDelete=useCallback(async ()=>{
-        queryClient.invalidateQueries({queryKey: ["exam-questions", examId]})
-    },[examId, queryClient])
+    const handleQuestionDelete = useCallback(async () => {
+        await queryClient.invalidateQueries({
+            queryKey: ["exam-questions", examId],
+            exact: false,
+        })
+    }, [examId, queryClient])
+
 
     if (isLoading) {
         return (
