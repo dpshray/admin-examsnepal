@@ -9,7 +9,9 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
-import {cn} from "@/lib/utils";
+import {cn} from "@/lib/utils"
+import {ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight} from "lucide-react"
+import {Button} from "@/components/ui/button"
 
 interface CustomPaginationProps {
     currentPage: number
@@ -44,68 +46,90 @@ export default function CustomPagination({
     const pageNumbers = getPageNumbers()
 
     return (
-        <Pagination className={cn('justify-end', className)}>
-            <PaginationContent>
-                <PaginationItem>
-                    <PaginationPrevious
-                        onClick={() => {
-                            if (currentPage > 1) onPageChangeAction(currentPage - 1)
-                        }}
-                        aria-disabled={currentPage === 1}
-                        aria-label="Previous page"
-                        tabIndex={currentPage === 1 ? -1 : undefined}
-                    />
-                </PaginationItem>
+        <div className={cn('flex items-center justify-end gap-2', className)}>
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onPageChangeAction(1)}
+                disabled={currentPage === 1}
+                className="h-9 w-9"
+            >
+                <ChevronsLeft className="h-4 w-4" />
+            </Button>
 
-                {pageNumbers[0] > 1 && (
-                    <>
-                        <PaginationItem>
-                            <PaginationLink onClick={() => onPageChangeAction(1)}>1</PaginationLink>
-                        </PaginationItem>
-                        {pageNumbers[0] > 2 && (
-                            <PaginationItem>
-                                <PaginationEllipsis/>
-                            </PaginationItem>
-                        )}
-                    </>
-                )}
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onPageChangeAction(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-9 w-9"
+            >
+                <ChevronLeft className="h-4 w-4" />
+            </Button>
 
-                {pageNumbers.map((page) => (
-                    <PaginationItem key={page}>
-                        <PaginationLink
-                            onClick={() => onPageChangeAction(page)}
-                            isActive={currentPage === page}
-                            aria-current={currentPage === page ? "page" : undefined}
-                        >
-                            {page}
-                        </PaginationLink>
-                    </PaginationItem>
-                ))}
+            {pageNumbers[0] > 1 && (
+                <>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => onPageChangeAction(1)}
+                        className="h-9 w-9"
+                    >
+                        1
+                    </Button>
+                    {pageNumbers[0] > 2 && (
+                        <span className="px-2">...</span>
+                    )}
+                </>
+            )}
 
-                {pageNumbers[pageNumbers.length - 1] < totalPages && (
-                    <>
-                        {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
-                            <PaginationItem>
-                                <PaginationEllipsis/>
-                            </PaginationItem>
-                        )}
-                        <PaginationItem>
-                            <PaginationLink onClick={() => onPageChangeAction(totalPages)}>{totalPages}</PaginationLink>
-                        </PaginationItem>
-                    </>
-                )}
+            {pageNumbers.map((page) => (
+                <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => onPageChangeAction(page)}
+                    className="h-9 w-9"
+                >
+                    {page}
+                </Button>
+            ))}
 
-                <PaginationItem>
-                    <PaginationNext
-                        onClick={() => {
-                            if (currentPage < totalPages) onPageChangeAction(currentPage + 1)
-                        }}
-                        aria-disabled={currentPage === totalPages}
-                        aria-label="Next page"
-                        tabIndex={currentPage === totalPages ? -1 : undefined}
-                    />
-                </PaginationItem>
-            </PaginationContent>
-        </Pagination>
+            {pageNumbers[pageNumbers.length - 1] < totalPages && (
+                <>
+                    {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
+                        <span className="px-2">...</span>
+                    )}
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => onPageChangeAction(totalPages)}
+                        className="h-9 w-9"
+                    >
+                        {totalPages}
+                    </Button>
+                </>
+            )}
+
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onPageChangeAction(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-9 w-9"
+            >
+                <ChevronRight className="h-4 w-4" />
+            </Button>
+
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onPageChangeAction(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-9 w-9"
+            >
+                <ChevronsRight className="h-4 w-4" />
+            </Button>
+        </div>
     )
 }
