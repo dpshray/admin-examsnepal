@@ -40,11 +40,58 @@ interface Doubt {
     student: Student
 }
 
+interface DetailSectionProps {
+    icon?: React.ReactNode
+    title: string
+    children: React.ReactNode
+}
+
+const DetailSection = memo(function DetailSection({icon, title, children}: DetailSectionProps) {
+    return (
+        <div className="space-y-2">
+            <p className="font-semibold text-sm flex items-center gap-2">
+                {icon}
+                {title}
+            </p>
+            {children}
+        </div>
+    )
+})
+
+interface OptionItemProps {
+    option: Option
+}
+
+const OptionItem = memo(function OptionItem({option}: OptionItemProps) {
+    const isCorrect = option.value === 1
+
+    return (
+        <div
+            className={cn(
+                "p-3 rounded-md border text-sm transition-colors",
+                isCorrect
+                    ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
+                    : "bg-background hover:bg-muted/50"
+            )}
+            role="option"
+            aria-selected={isCorrect}
+        >
+            <div className="flex items-center gap-2">
+                {isCorrect && (
+                    <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" aria-label="Correct answer"/>
+                )}
+                <span className="break-words">{option.option}</span>
+            </div>
+        </div>
+    )
+})
+
 export function DoubtsTable() {
     const [currentPage, setCurrentPage] = useState(1)
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedDoubt, setSelectedDoubt] = useState<Doubt | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [expandedRowId, setExpandedRowId] = useState<string | null>(null)
 
     const queryClient = useQueryClient()
 
@@ -97,7 +144,11 @@ export function DoubtsTable() {
                             size="icon"
                             variant="ghost"
                             className="p-0 w-7 h-7 shrink-0"
-                            onClick={row.getToggleExpandedHandler()}
+                            onClick={() => {
+                                const handler = row.getToggleExpandedHandler()
+                                handler()
+                                setExpandedRowId(row.getIsExpanded() ? null : row.id)
+                            }}
                             aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
                         >
                             {row.getIsExpanded() ? (
@@ -180,6 +231,22 @@ export function DoubtsTable() {
                 ),
             },
             {
+                accessorKey: "exam_name",
+                header: "Exam Name",
+                size: 350,
+                cell: ({row}) => (
+                    <div className="flex items-start gap-2 min-w-0">
+                        <MessageSquare className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" aria-hidden="true"/>
+                        <p
+                            className="text-sm leading-relaxed line-clamp-2 wrap-break-word"
+                            title={row.original.exam_name}
+                        >
+                            {row.original.exam_name}
+                        </p>
+                    </div>
+                ),
+            },
+            {
                 accessorKey: "doubt",
                 header: "Doubt",
                 size: 350,
@@ -234,72 +301,82 @@ export function DoubtsTable() {
 
     const renderSubComponent = useCallback(
         (row: Row<Doubt>) => {
+            if (expandedRowId !== row.id) return null
+
             const isResolved = row.original.status === "Resolved"
 
             return (
-                <div className="bg-muted/50 p-4 sm:p-6 border-t">
-                    <div className="space-y-4 sm:space-y-6 max-w-5xl">
-                        <DetailCard
-                            icon={<MessageSquare className="w-4 h-4" aria-hidden="true"/>}
-                            title="Question"
-                        >
-                            <p className="text-sm leading-relaxed break-words">
-                                {row.original.question.question}
-                            </p>
-                        </DetailCard>
-
-                        <DetailCard title="Options">
-                            <div className="space-y-2">
-                                {row.original.question.options.map((opt) => (
-                                    <OptionItem key={opt.id} option={opt}/>
-                                ))}
-                            </div>
-                        </DetailCard>
-
-                        {row.original.doubt && (
-                            <DetailCard title="Student's Doubt">
-                                <p className="text-sm leading-relaxed break-words">
-                                    {row.original.doubt}
-                                </p>
-                            </DetailCard>
-                        )}
-
-                        {row.original.remark && (
-                            <DetailCard title="Remark">
-                                <p className="text-sm leading-relaxed text-muted-foreground break-words">
-                                    {row.original.remark}
-                                </p>
-                            </DetailCard>
-                        )}
-
-                        {row.original.question.explanation && (
-                            <DetailCard title="Explanation">
-                                <div className="text-sm leading-relaxed text-muted-foreground max-h-96 overflow-y-auto">
-                                    <p className="whitespace-pre-wrap break-words">
-                                        {row.original.question.explanation}
+                <div className="bg-muted/30 border-t">
+                    <div className="max-w-7xl  px-4 sm:px-6 py-4 sm:py-6">
+                        <div className="bg-background rounded-lg border shadow-sm p-4 sm:p-6">
+                            <div className="space-y-6">
+                                <DetailSection
+                                    icon={<MessageSquare className="w-4 h-4" aria-hidden="true"/>}
+                                    title="Question"
+                                >
+                                    <p className="text-sm leading-relaxed wrap-break-word">
+                                        {row.original.question.question}
                                     </p>
-                                </div>
-                            </DetailCard>
-                        )}
+                                </DetailSection>
 
-                        <div className="flex gap-2 pt-2">
-                            <Button
-                                variant={isResolved ? "outline" : "default"}
-                                size="sm"
-                                onClick={() => handleResolveClick(row.original)}
-                                disabled={isResolved}
-                                className="font-medium"
-                                aria-label={isResolved ? "View doubt details" : "Resolve doubt"}
-                            >
-                                {isResolved ? "View Details" : "Resolve Doubt"}
-                            </Button>
+                                <DetailSection title="Options">
+                                    <div className="grid gap-2 sm:gap-3">
+                                        {row.original.question.options.map((opt) => (
+                                            <OptionItem key={opt.id} option={opt}/>
+                                        ))}
+                                    </div>
+                                </DetailSection>
+
+                                {row.original.doubt && (
+                                    <DetailSection title="Student's Doubt">
+                                        <p className="text-sm leading-relaxed break-words">
+                                            {row.original.doubt}
+                                        </p>
+                                    </DetailSection>
+                                )}
+
+                                {row.original.remark && (
+                                    <DetailSection title="Remark">
+                                        <p className="text-sm leading-relaxed text-muted-foreground break-words">
+                                            {row.original.remark}
+                                        </p>
+                                    </DetailSection>
+                                )}
+
+                                {row.original.question.explanation && (
+                                    <DetailSection title="Explanation">
+                                        <div className="text-sm leading-relaxed text-muted-foreground">
+                                            <p className="whitespace-pre-wrap break-words">
+                                                {row.original.question.explanation}
+                                            </p>
+                                        </div>
+                                    </DetailSection>
+                                )}
+
+                                <div className="flex flex-wrap gap-2 pt-2 border-t">
+                                    <Button
+                                        variant={isResolved ? "outline" : "default"}
+                                        size="sm"
+                                        onClick={() => handleResolveClick(row.original)}
+                                        disabled={isResolved}
+                                        className="font-medium"
+                                        aria-label={isResolved ? "View doubt details" : "Resolve doubt"}
+                                    >
+                                        {isResolved ? "View Details" : "Resolve Doubt"}
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             )
         },
-        [handleResolveClick]
+        [handleResolveClick, expandedRowId]
     )
+    const handlePageChange = useCallback((page: number) => {
+        setCurrentPage(page)
+        setExpandedRowId(null)
+    }, [])
 
     const doubts = data?.data ?? []
     const totalPages = data?.last_page ?? 1
@@ -323,7 +400,7 @@ export function DoubtsTable() {
                     page: currentPage,
                     totalPages,
                     pageSize: doubts.length,
-                    onPageChangeAction: setCurrentPage,
+                    onPageChangeAction: handlePageChange,
                     dataCount: totalCount,
                 }}
                 actionLabel="Export Data"
@@ -338,49 +415,3 @@ export function DoubtsTable() {
         </>
     )
 }
-
-interface DetailCardProps {
-    icon?: React.ReactNode
-    title: string
-    children: React.ReactNode
-}
-
-const DetailCard = memo(function DetailCard({icon, title, children}: DetailCardProps) {
-    return (
-        <div className="space-y-3 p-4 bg-background rounded-lg border shadow-sm">
-            <p className="font-semibold text-sm flex items-center gap-2">
-                {icon}
-                {title}
-            </p>
-            {children}
-        </div>
-    )
-})
-
-interface OptionItemProps {
-    option: Option
-}
-
-const OptionItem = memo(function OptionItem({option}: OptionItemProps) {
-    const isCorrect = option.value === 1
-
-    return (
-        <div
-            className={cn(
-                "p-3 rounded-md border text-sm transition-colors",
-                isCorrect
-                    ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
-                    : "bg-background hover:bg-muted/50"
-            )}
-            role="option"
-            aria-selected={isCorrect}
-        >
-            <div className="flex items-center gap-2">
-                {isCorrect && (
-                    <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" aria-label="Correct answer"/>
-                )}
-                <span className="break-words">{option.option}</span>
-            </div>
-        </div>
-    )
-})

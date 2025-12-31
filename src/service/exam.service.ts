@@ -74,7 +74,7 @@ class ExamService extends HttpService {
         }
     }
 
-    async getExamById(id: string, page: number = 1) {
+    async getExamById(id: number, page: number = 1) {
         try {
             const response = await this.getRequest({
                 // teacher/exam/1/question
@@ -95,10 +95,25 @@ class ExamService extends HttpService {
             return await this.postRequest({
                 url: `/teacher/exam/${examId}/question`,
                 data,
-                config: {auth: true}
+                config: {
+                    auth: true,
+                    file: true
+                }
             });
         } catch (error) {
             console.error(`Error uploading question:`, error);
+            throw error;
+        }
+    }
+
+    async getQuestionById(id: number) {
+        try {
+            return await this.getRequest({
+                url: `/teacher/question/${id}`,
+                config: {auth: true}
+            });
+        } catch (error) {
+            console.error(`Error fetching question: ${error}`);
             throw error;
         }
     }
@@ -140,18 +155,24 @@ class ExamService extends HttpService {
         }
     }
 
-    async updateQuestion(id: number, data: any) {
+    async updateQuestion(id: number, data: FormData) {
         try {
-            return await this.putRequest({
+            data.append("_method", "patch");
+
+            return await this.postRequest({
                 url: `/teacher/question/${id}`,
                 data,
-                config: {auth: true},
+                config: {
+                    auth: true,
+                    file: true,
+                },
             });
         } catch (error) {
             console.error(`Error updating question: ${error}`);
             throw error;
         }
     }
+
 
 }
 
