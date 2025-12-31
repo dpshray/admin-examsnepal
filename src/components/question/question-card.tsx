@@ -20,13 +20,14 @@ import {
 
 import { examService } from "@/service/exam.service";
 import EditQuestionForm from "@/components/question/UpdateQuestionForm";
+import {toast} from "sonner";
 
 
 interface QuestionOption {
     id: number;
     question_id: number;
     option: string;
-    value: number;
+    value: boolean;
 }
 
 interface Question {
@@ -48,7 +49,7 @@ interface Question {
 interface QuestionCardProps {
     question: Question;
     index: number;
-    onDeleteAction?: (questionId: number) => Promise<void>;
+    onDeleteAction?: () => Promise<void>;
     onUpdatedAction?: () => void;
 }
 
@@ -66,11 +67,12 @@ export default function QuestionViewCard({
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            if (onDeleteAction) {
-                await onDeleteAction(question.id);
-            } else {
-                await examService.deleteQuestion(question.id);
-            }
+            await examService.deleteQuestion(question.id).then((res)=>{
+                toast.success(res?.message || "Question Deleted Successfully")
+            }).catch((err)=>{
+                toast.error(err?.message || "Failed to delete question")
+            })
+            await onDeleteAction?.();
         } finally {
             setIsDeleting(false);
             setDeleteOpen(false);
@@ -120,7 +122,7 @@ export default function QuestionViewCard({
                             <div
                                 key={option.id}
                                 className={`p-3 rounded-lg border ${
-                                    option.value === 1
+                                    option.value
                                         ? "bg-green-50 border-green-200"
                                         : "bg-gray-50 border-gray-200"
                                 }`}
@@ -134,7 +136,7 @@ export default function QuestionViewCard({
                                             {option.option}
                                         </span>
                                     </div>
-                                    {option.value === 1 && (
+                                    {option.value && (
                                         <Badge className="text-xs bg-green-600 shrink-0">
                                             Correct
                                         </Badge>
