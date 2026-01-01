@@ -1,18 +1,26 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, ImagePlus, Loader2, X } from "lucide-react";
+import {
+    AlertCircle,
+    CheckCircle,
+    ImagePlus,
+    Loader2,
+    X,
+} from "lucide-react";
 import { RichTextEditor } from "@/components/field/rich-text-editor";
 import FileInputField from "@/components/field/FileInputField";
 import { examService } from "@/service/exam.service";
 import { cn } from "@/lib/utils";
+
+
 
 type OptionKey = "A" | "B" | "C" | "D";
 type OptionFieldName = "optionA" | "optionB" | "optionC" | "optionD";
@@ -31,6 +39,8 @@ interface QuestionDetails {
     image?: string;
 }
 
+
+
 const OPTIONS: { value: OptionKey; label: string; field: OptionFieldName }[] = [
     { value: "A", label: "Option A", field: "optionA" },
     { value: "B", label: "Option B", field: "optionB" },
@@ -38,24 +48,25 @@ const OPTIONS: { value: OptionKey; label: string; field: OptionFieldName }[] = [
     { value: "D", label: "Option D", field: "optionD" },
 ];
 
+
+
 const questionSchema = yup.object({
     question: yup.string().min(10).required(),
     optionA: yup.string().required(),
     optionB: yup.string().required(),
     optionC: yup.string().required(),
     optionD: yup.string().required(),
-    correctAnswer: yup.mixed<OptionKey>().oneOf(["A", "B", "C", "D"]).required(),
+    correctAnswer: yup
+        .mixed<OptionKey>()
+        .oneOf(["A", "B", "C", "D"])
+        .required("Select the correct answer"),
     explanation: yup.string().min(10).required(),
     questionImage: yup.mixed<File>().optional(),
 });
 
 type QuestionFormData = yup.InferType<typeof questionSchema>;
 
-interface EditQuestionFormProps {
-    examId: number;
-    questionId: number;
-    onSubmitAction?: () => void;
-}
+
 
 const ErrorMessage = ({ message }: { message?: string }) =>
     message ? (
@@ -70,22 +81,19 @@ const OptionField = ({
                          value,
                          onChange,
                          error,
-                         disabled,
                      }: {
     label: string;
     value?: string;
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
     error?: string;
-    disabled?: boolean;
 }) => (
     <div className="mb-3">
         <Label className="text-sm font-medium mb-1.5 block">{label}</Label>
         <textarea
-            value={value || ""}
+            value={value ?? ""}
             onChange={onChange}
-            disabled={disabled}
             className={cn(
-                "w-full min-h-[80px] p-2 border rounded-md resize-none",
+                "w-full min-h-20 p-2 border rounded-md resize-none",
                 error ? "border-red-500" : "border-gray-300"
             )}
         />
@@ -98,43 +106,51 @@ const CorrectAnswerRadio = ({
                                 label,
                                 displayValue,
                                 isSelected,
-                                onSelect,
                                 disabled,
                             }: {
     value: OptionKey;
     label: string;
     displayValue?: string;
     isSelected: boolean;
-    onSelect: () => void;
     disabled?: boolean;
 }) => (
-    <div
-        onClick={disabled ? undefined : onSelect}
-        tabIndex={disabled ? -1 : 0}
+    <Label
+        htmlFor={`answer-${value}`}
         className={cn(
-            "p-3 rounded-lg border-2 transition-all",
+            "flex gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
             isSelected ? "border-green-500 bg-green-50" : "border-gray-200",
-            disabled && "opacity-50"
+            disabled && "opacity-50 cursor-not-allowed"
         )}
     >
-        <div className="flex gap-2.5">
-            <RadioGroupItem value={value} disabled={disabled} />
-            <div className="flex-1">
-                <Label className="font-medium text-sm">{label}</Label>
-                {displayValue && (
-                    <p className="text-xs text-gray-600 mt-0.5">{displayValue}</p>
-                )}
-            </div>
-            {isSelected && <CheckCircle className="w-4 h-4 text-green-600" />}
+        <RadioGroupItem
+            id={`answer-${value}`}
+            value={value}
+            disabled={disabled}
+        />
+
+        <div className="flex-1">
+            <span className="text-sm font-medium">{label}</span>
+            {displayValue && (
+                <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">
+                    {displayValue}
+                </p>
+            )}
         </div>
-    </div>
+
+        {isSelected && <CheckCircle className="w-4 h-4 text-green-600" />}
+    </Label>
 );
 
+
+
 export default function EditQuestionForm({
-                                             examId,
                                              questionId,
                                              onSubmitAction,
-                                         }: EditQuestionFormProps) {
+                                         }: {
+    examId: number;
+    questionId: number;
+    onSubmitAction?: () => void;
+}) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showImageUpload, setShowImageUpload] = useState(false);
     const [existingImageUrl, setExistingImageUrl] = useState("");
@@ -146,10 +162,9 @@ export default function EditQuestionForm({
     });
 
     const {
-        handleSubmit,
         control,
+        handleSubmit,
         setValue,
-        watch,
         formState: { errors },
     } = useForm<QuestionFormData>({
         resolver: yupResolver(questionSchema) as any,
@@ -164,17 +179,28 @@ export default function EditQuestionForm({
         },
     });
 
-    const { data, isLoading } = useQuery({
+    const formValues = useWatch({ control });
+
+
+
+    const { data, isLoading,refetch } = useQuery({
         queryKey: ["question", questionId],
         queryFn: async () => {
             const res = await examService.getQuestionById(questionId);
+            console.log(res.data);
             return res.data as QuestionDetails;
         },
         enabled: !!questionId,
+        refetchOnWindowFocus: true,
+        gcTime: 0,
+        staleTime: 0,
+
     });
+
 
     useEffect(() => {
         if (!data) return;
+
         setValue("question", data.question);
         setValue("explanation", data.explanation);
 
@@ -196,7 +222,7 @@ export default function EditQuestionForm({
         }
     }, [data, setValue]);
 
-    const formValues = watch();
+
 
     const handleImageChange = useCallback(
         (files: File[]) => {
@@ -205,8 +231,11 @@ export default function EditQuestionForm({
         [setValue]
     );
 
+
+
     const onSubmit = async (values: QuestionFormData) => {
         setIsSubmitting(true);
+
         const fd = new FormData();
         fd.append("_method", "patch");
         fd.append("question", values.question);
@@ -219,15 +248,19 @@ export default function EditQuestionForm({
         fd.append("option_b_id", String(optionIds.B));
         fd.append("option_c_id", String(optionIds.C));
         fd.append("option_d_id", String(optionIds.D));
-        fd.append("option_a_is_true", String(values.correctAnswer === "A"));
-        fd.append("option_b_is_true", String(values.correctAnswer === "B"));
-        fd.append("option_c_is_true", String(values.correctAnswer === "C"));
-        fd.append("option_d_is_true", String(values.correctAnswer === "D"));
+        fd.append("option_a_is_true", values.correctAnswer === "A" ? "1" : "0");
+        fd.append("option_b_is_true", values.correctAnswer === "B" ? "1" : "0");
+        fd.append("option_c_is_true", values.correctAnswer === "C" ? "1" : "0");
+        fd.append("option_d_is_true", values.correctAnswer === "D" ? "1" : "0");
+
         if (values.questionImage) fd.append("image", values.questionImage);
+
         await examService.updateQuestion(questionId, fd);
         onSubmitAction?.();
         setIsSubmitting(false);
     };
+
+
 
     if (isLoading) {
         return (
@@ -237,22 +270,30 @@ export default function EditQuestionForm({
         );
     }
 
+
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-7xl mx-auto">
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6 max-w-7xl mx-auto"
+        >
             <Controller
                 name="question"
                 control={control}
                 render={({ field }) => (
-                    <RichTextEditor content={field.value} onChange={field.onChange} />
+                    <RichTextEditor
+                        content={field.value ?? ""}
+                        onChange={field.onChange}
+                    />
                 )}
             />
             <ErrorMessage message={errors.question?.message} />
 
             <Button
                 type="button"
-                variant="outline"
                 size="sm"
-                onClick={() => setShowImageUpload(!showImageUpload)}
+                variant="outline"
+                onClick={() => setShowImageUpload(v => !v)}
             >
                 {showImageUpload ? <X className="w-4 h-4" /> : <ImagePlus className="w-4 h-4" />}
             </Button>
@@ -289,7 +330,11 @@ export default function EditQuestionForm({
                         name="correctAnswer"
                         control={control}
                         render={({ field }) => (
-                            <RadioGroup value={field.value} onValueChange={field.onChange}>
+                            <RadioGroup
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                className="space-y-2"
+                            >
                                 {OPTIONS.map(o => (
                                     <CorrectAnswerRadio
                                         key={o.value}
@@ -297,7 +342,7 @@ export default function EditQuestionForm({
                                         label={o.label}
                                         displayValue={formValues[o.field]}
                                         isSelected={field.value === o.value}
-                                        onSelect={() => field.onChange(o.value)}
+                                        disabled={!formValues[o.field]}
                                     />
                                 ))}
                             </RadioGroup>
@@ -320,8 +365,12 @@ export default function EditQuestionForm({
             />
             <ErrorMessage message={errors.explanation?.message} />
 
-            <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : "Update Question"}
+            <Button type="submit" disabled={isSubmitting} className={'justify-end'}>
+                {isSubmitting ? (
+                    <Loader2 className="animate-spin w-4 h-4" />
+                ) : (
+                    "Update Question"
+                )}
             </Button>
         </form>
     );
