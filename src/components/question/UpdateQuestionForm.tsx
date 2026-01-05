@@ -19,6 +19,7 @@ import { RichTextEditor } from "@/components/field/rich-text-editor";
 import FileInputField from "@/components/field/FileInputField";
 import { examService } from "@/service/exam.service";
 import { cn } from "@/lib/utils";
+import TextInputField from "@/components/field/TextInputField";
 
 
 
@@ -165,6 +166,7 @@ export default function EditQuestionForm({
         control,
         handleSubmit,
         setValue,
+        register,
         formState: { errors },
     } = useForm<QuestionFormData>({
         resolver: yupResolver(questionSchema) as any,
@@ -277,17 +279,23 @@ export default function EditQuestionForm({
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6 max-w-7xl mx-auto"
         >
-            <Controller
-                name="question"
-                control={control}
-                render={({ field }) => (
-                    <RichTextEditor
-                        content={field.value ?? ""}
-                        onChange={field.onChange}
-                    />
-                )}
+            {/*<Controller*/}
+            {/*    name="question"*/}
+            {/*    control={control}*/}
+            {/*    render={({ field }) => (*/}
+            {/*        <RichTextEditor*/}
+            {/*            content={field.value ?? ""}*/}
+            {/*            onChange={field.onChange}*/}
+            {/*        />*/}
+            {/*    )}*/}
+            {/*/>*/}
+            {/*<ErrorMessage message={errors.question?.message} />*/}
+
+            <TextInputField
+                textarea
+                {...register('question')}
+                label={'Question'}
             />
-            <ErrorMessage message={errors.question?.message} />
 
             <Button
                 type="button"

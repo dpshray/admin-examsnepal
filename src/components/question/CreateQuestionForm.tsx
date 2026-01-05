@@ -103,30 +103,35 @@ export default function CreateQuestionForm({
 
                 <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
                     <div className="space-y-3">
-                        <Label className="text-sm sm:text-base font-semibold text-gray-900">
-                            Question <span className="text-red-500">*</span>
-                        </Label>
-                        <Controller
-                            name="question"
-                            control={control}
-                            render={({field}) => (
-                                <div>
-                                    <RichTextEditor
-                                        content={field.value}
-                                        onChange={field.onChange}
-                                        placeholder="Write your question here..."
-                                        minHeight="150px"
-                                    />
-                                    {errors.question && (
-                                        <p className="mt-2 text-xs sm:text-sm text-red-600 flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                            {errors.question.message}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-                        />
+                        {/*<Label className="text-sm sm:text-base font-semibold text-gray-900">*/}
+                        {/*    Question <span className="text-red-500">*</span>*/}
+                        {/*</Label>*/}
+                        {/*<Controller*/}
+                        {/*    name="question"*/}
+                        {/*    control={control}*/}
+                        {/*    render={({field}) => (*/}
+                        {/*        <div>*/}
+                        {/*            <RichTextEditor*/}
+                        {/*                content={field.value}*/}
+                        {/*                onChange={field.onChange}*/}
+                        {/*                placeholder="Write your question here..."*/}
+                        {/*                minHeight="150px"*/}
+                        {/*            />*/}
+                        {/*            {errors.question && (*/}
+                        {/*                <p className="mt-2 text-xs sm:text-sm text-red-600 flex items-center gap-1">*/}
+                        {/*                    <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />*/}
+                        {/*                    {errors.question.message}*/}
+                        {/*                </p>*/}
+                        {/*            )}*/}
+                        {/*        </div>*/}
+                        {/*    )}*/}
+                        {/*/>*/}
 
+                        <TextInputField
+                            textarea
+                            {...register('question')}
+                            label={'Question'}
+                        />
                         <div className="pt-2">
                             <Button
                                 type="button"
@@ -158,6 +163,8 @@ export default function CreateQuestionForm({
                             )}
                         </div>
                     </div>
+
+
 
                     <div className="border-t border-gray-200"></div>
 
