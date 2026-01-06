@@ -368,7 +368,7 @@ export default function EditQuestionForm({
                     <textarea
                         value={field.value}
                         onChange={field.onChange}
-                        className="w-full min-h-[100px] p-2 border rounded-md"
+                        className="w-full min-h-[200px] p-2 border rounded-md"
                     />
                 )}
             />
