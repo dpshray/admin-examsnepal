@@ -1,20 +1,23 @@
 "use client"
 
-import {useCallback, useMemo, useState} from "react"
+import {useCallback, useEffect, useMemo, useState} from "react"
 import {useRouter} from "next/navigation"
 import {Button} from "@/components/ui/button"
 import {Alert, AlertDescription} from "@/components/ui/alert"
 import {AlertCircle, BookOpen} from "lucide-react"
-import {ExamCard, Exam} from "@/components/Exam/exam-card"
+import {Exam, ExamCard} from "@/components/Exam/exam-card"
 import {examService} from "@/service/exam.service"
 import CustomPagination from "@/components/Custom-Pagination"
 import ExamSkeletonCard from "@/components/skeleton/ExamSkeletonCard"
 import {useQuery, useQueryClient} from "@tanstack/react-query"
-
 import {useExamTypes} from "@/hooks/useExamTypes"
 import {useExamCategories} from "@/hooks/useExamCategories"
 import SelectInputField from "@/components/field/SelectInputField"
-import {ExamModalForm} from "@/components/Exam/exam-modal-form";
+import {ExamModalForm} from "@/components/Exam/exam-modal-form"
+import {Input} from "@/components/ui/input"
+import {useDebounce} from "@/hooks/use-Debounce";
+import {Label} from "@/components/ui/label";
+
 
 export default function ExamDashboard() {
     const router = useRouter()
@@ -23,26 +26,23 @@ export default function ExamDashboard() {
     const [currentPage, setCurrentPage] = useState(1)
     const [examType, setExamType] = useState<string | number>("")
     const [categoryType, setCategoryType] = useState<string | number>("")
+    const [searchQuery, setSearchQuery] = useState<string>("")
+
+    const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
     const {data: examTypesData, isLoading: examTypesLoading} = useExamTypes()
     const {data: examCategories, isLoading: categoriesLoading} = useExamCategories()
 
-    const {data: examsData, isLoading: examsLoading, error, refetch} = useQuery({
-        queryKey: ["exams", currentPage, examType, categoryType],
+    const {data: examsData, isLoading: examsLoading, error} = useQuery({
+        queryKey: ["exams", currentPage, examType, categoryType, debouncedSearchQuery],
         queryFn: async () => {
             const params: Record<string, any> = {
                 page: currentPage,
                 per_page: 12,
+                exam_type: examType,
+                category_type: categoryType,
+                search: debouncedSearchQuery,
             }
-
-            if (examType) {
-                params.exam_type_id = examType
-            }
-
-            if (categoryType) {
-                params.category_type_id = categoryType
-            }
-
             return await examService.getAllExams(params)
         },
     })
@@ -72,6 +72,10 @@ export default function ExamDashboard() {
         ]
     }, [examCategories])
 
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [debouncedSearchQuery])
+
     const handlePageChange = useCallback((page: number) => {
         setCurrentPage(page)
     }, [])
@@ -90,8 +94,8 @@ export default function ExamDashboard() {
     }, [router])
 
     const handleDeleteExam = useCallback(async () => {
-        await refetch()
-    }, [refetch])
+        await queryClient.invalidateQueries({queryKey: ["exams"]})
+    }, [queryClient])
 
     const handleExamTypeChange = useCallback((value: string | number) => {
         setExamType(value)
@@ -141,7 +145,21 @@ export default function ExamDashboard() {
                 )}
 
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-6">
+                    <div className="w-full sm:w-64 space-y-2">
+                        <Label
+                            htmlFor={'search'}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Search
+                        </Label>
+                        <Input
+                            placeholder="Search exams..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                     <SelectInputField
+                        label="Exam Type"
                         placeholder="Filter by exam type"
                         options={examTypeOptions}
                         value={examType}
@@ -150,6 +168,7 @@ export default function ExamDashboard() {
                         className="w-full sm:w-64"
                     />
                     <SelectInputField
+                        label="Category Type"
                         placeholder="Filter by category"
                         options={examCategoriesOptions}
                         value={categoryType}

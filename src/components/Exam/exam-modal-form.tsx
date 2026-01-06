@@ -1,21 +1,21 @@
 "use client"
 
-import {memo, useCallback, useEffect, useMemo, useState} from "react"
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
-import {Button} from "@/components/ui/button"
-import {Label} from "@/components/ui/label"
-import {Switch} from "@/components/ui/switch"
-import {Alert, AlertDescription} from "@/components/ui/alert"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import SelectInputField from "@/components/field/SelectInputField"
 import TextInputField from "@/components/field/TextInputField"
-import {useForm} from "react-hook-form"
-import {yupResolver} from "@hookform/resolvers/yup"
+import { useForm } from "react-hook-form"
+import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
-import {toast} from "sonner"
-import {AlertCircle, Loader2} from "lucide-react"
-import {useExamTypes} from "@/hooks/useExamTypes"
-import {useExamCategories} from "@/hooks/useExamCategories"
-import {examService} from "@/service/exam.service"
+import { toast } from "sonner"
+import { AlertCircle, Clock, Loader2 } from "lucide-react"
+import { useExamTypes } from "@/hooks/useExamTypes"
+import { useExamCategories } from "@/hooks/useExamCategories"
+import { examService } from "@/service/exam.service"
 
 interface ExamFormData {
     exam_type_id: number
@@ -28,6 +28,7 @@ interface ExamFormData {
     is_negative_marking: boolean
     negative_marking_point: number
     points_per_question: number
+    duration: number
 }
 
 interface ExamModalProps {
@@ -36,14 +37,14 @@ interface ExamModalProps {
     mode?: "create" | "update"
     onSuccessAction?: () => void
     examId?: number
-
 }
 
 const examSchema = yup.object({
     exam_type_id: yup.number().required("Exam type is required"),
     category_type: yup.number().required("Category is required"),
-    exam_name: yup.string().required("Exam name is required"),
-    description: yup.string().required("Description is required"),
+    exam_name: yup.string().required("Exam name is required").trim(),
+    description: yup.string().required("Description is required").trim(),
+    duration: yup.number().min(1, "Duration must be at least 1 minute").max(999, "Duration cannot exceed 999 minutes").required("Duration is required"),
     publish: yup.boolean().required(),
     assign: yup.boolean().required(),
     live: yup.boolean().required(),
@@ -52,27 +53,44 @@ const examSchema = yup.object({
     points_per_question: yup.number().min(0, "Must be 0 or more").required("Points per question is required"),
 })
 
-const SwitchField = memo(
-    ({id, label, description, checked, onChange, disabled}: {
-        id: string
-        label: string
-        description: string
-        checked: boolean
-        onChange: (checked: boolean) => void
-        disabled: boolean
-    }) => (
-        <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
-            <div className="space-y-0.5 flex-1 pr-2">
-                <Label htmlFor={id} className="text-sm font-medium cursor-pointer">{label}</Label>
-                <p className="text-xs text-muted-foreground">{description}</p>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">{checked ? "On" : "Disabled"}</span>
-                <Switch id={id} checked={checked} onCheckedChange={onChange} disabled={disabled} aria-label={label}/>
-            </div>
+const SwitchField = memo(({
+                              id,
+                              label,
+                              description,
+                              checked,
+                              onChange,
+                              disabled
+                          }: {
+    id: string
+    label: string
+    description: string
+    checked: boolean
+    onChange: (checked: boolean) => void
+    disabled: boolean
+}) => (
+    <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50 gap-3">
+        <div className="space-y-0.5 flex-1 min-w-0">
+            <Label htmlFor={id} className="text-sm font-medium cursor-pointer leading-tight">
+                {label}
+            </Label>
+            <p className="text-xs text-muted-foreground leading-tight break-words">
+                {description}
+            </p>
         </div>
-    )
-)
+        <div className="flex items-center gap-2 flex-shrink-0">
+      <span className="text-xs font-medium text-muted-foreground hidden sm:inline">
+        {checked ? "On" : "Off"}
+      </span>
+            <Switch
+                id={id}
+                checked={checked}
+                onCheckedChange={onChange}
+                disabled={disabled}
+                aria-label={label}
+            />
+        </div>
+    </div>
+))
 
 SwitchField.displayName = "SwitchField"
 
@@ -84,13 +102,13 @@ export const ExamModalForm = memo(function ExamModalForm({
                                                              onSuccessAction
                                                          }: ExamModalProps) {
     const [isFetchingData, setIsFetchingData] = useState(false)
-    const {data: examTypesData, isLoading: examTypesLoading, error: examTypesError} = useExamTypes()
-    const {data: examCategories, isLoading: categoriesLoading, error: categoriesError} = useExamCategories()
+    const { data: examTypesData, isLoading: examTypesLoading, error: examTypesError } = useExamTypes()
+    const { data: examCategories, isLoading: categoriesLoading, error: categoriesError } = useExamCategories()
 
     const {
         register,
         handleSubmit: formHandleSubmit,
-        formState: {errors, isSubmitting},
+        formState: { errors, isSubmitting },
         setValue,
         watch,
         reset
@@ -107,38 +125,47 @@ export const ExamModalForm = memo(function ExamModalForm({
             is_negative_marking: false,
             negative_marking_point: 0,
             points_per_question: 0,
+            duration: 0
         },
     })
 
     const formData = watch()
 
-    const examTypeOptions = useMemo(() => examTypesData?.map((type: any) => ({
-        label: type.name,
-        value: type.id
-    })) ?? [], [examTypesData])
-    const categoryTypeOptions = useMemo(() => examCategories?.map((category: any) => ({
-        label: category.name,
-        value: category.id
-    })) ?? [], [examCategories])
+    const examTypeOptions = useMemo(() =>
+            examTypesData?.map((type: any) => ({
+                label: type.name,
+                value: type.id
+            })) ?? [],
+        [examTypesData]
+    )
+
+    const categoryTypeOptions = useMemo(() =>
+            examCategories?.map((category: any) => ({
+                label: category.name,
+                value: category.id
+            })) ?? [],
+        [examCategories]
+    )
 
     const handleClose = useCallback(() => {
-        reset();
+        reset()
         onClose()
     }, [onClose, reset])
 
     useEffect(() => {
         if (!isOpen || mode !== "update" || !examId) return
+
         const fetchExamData = async () => {
             setIsFetchingData(true)
             try {
-                const response: any = await examService.getExamDetails(examId as number)
-                console.log('Resposne ', response)
+                const response: any = await examService.getExamDetails(examId)
                 if (response) {
                     reset({
                         exam_type_id: response.exam_type_id ?? 0,
                         category_type: response.category_type ?? 0,
                         exam_name: response.exam_name ?? "",
                         description: response.description ?? "",
+                        duration: response.duration ?? 0,
                         publish: response.publish ?? false,
                         assign: response.assign ?? false,
                         live: response.live ?? false,
@@ -153,6 +180,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                 setIsFetchingData(false)
             }
         }
+
         fetchExamData()
     }, [isOpen, mode, examId, reset])
 
@@ -164,11 +192,12 @@ export const ExamModalForm = memo(function ExamModalForm({
 
     const handleSubmit = useCallback(async (data: ExamFormData) => {
         try {
-            let response
             const payload = {
                 ...data,
                 is_active: data.publish,
             }
+
+            let response
             if (mode === "update" && examId) {
                 response = await examService.updateExam(examId, payload)
                 toast.success(response?.message || "Exam updated successfully")
@@ -176,6 +205,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                 response = await examService.createExam(payload)
                 toast.success(response?.message || "Exam created successfully")
             }
+
             onSuccessAction?.()
             handleClose()
         } catch (error: any) {
@@ -189,28 +219,29 @@ export const ExamModalForm = memo(function ExamModalForm({
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="w-[95vw] max-w-125 max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                 <DialogHeader>
-                    <DialogTitle
-                        className="text-lg sm:text-xl font-semibold">{mode === "update" ? "Update Exam" : "Create New Exam"}</DialogTitle>
+                    <DialogTitle className="text-lg sm:text-xl font-semibold">
+                        {mode === "update" ? "Update Exam" : "Create New Exam"}
+                    </DialogTitle>
                 </DialogHeader>
 
                 {isLoading && (
                     <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary"/>
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
                         <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
                     </div>
                 )}
 
                 {hasError && (
                     <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4"/>
+                        <AlertCircle className="h-4 w-4" />
                         <AlertDescription>Failed to load form data. Please try again.</AlertDescription>
                     </Alert>
                 )}
 
                 {!isLoading && !hasError && (
-                    <form onSubmit={formHandleSubmit(handleSubmit)} className="space-y-4">
+                    <div className="space-y-4">
                         <TextInputField
                             label="Exam Name"
                             placeholder="Enter exam name"
@@ -219,6 +250,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                             error={errors.exam_name?.message}
                             disabled={isSubmitting}
                         />
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <SelectInputField
                                 label="Exam Type"
@@ -241,6 +273,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                                 error={errors.category_type?.message}
                             />
                         </div>
+
                         <TextInputField
                             label="Description"
                             placeholder="Enter exam description"
@@ -251,16 +284,30 @@ export const ExamModalForm = memo(function ExamModalForm({
                             error={errors.description?.message}
                             disabled={isSubmitting}
                         />
+
+                        <TextInputField
+                            icon={Clock}
+                            label="Exam Duration (Minutes)"
+                            placeholder="Enter duration in minutes"
+                            type="number"
+                            min="1"
+                            max="999"
+                            required
+                            {...register("duration", { valueAsNumber: true })}
+                            error={errors.duration?.message}
+                            disabled={isSubmitting}
+                        />
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <TextInputField
                                 label="Points per Question"
-                                placeholder="Enter correct marking points"
+                                placeholder="Enter points for correct answer"
                                 type="number"
                                 step="0.01"
                                 min="0"
                                 max="99999.99"
                                 required
-                                {...register("points_per_question", {valueAsNumber: true})}
+                                {...register("points_per_question", { valueAsNumber: true })}
                                 error={errors.points_per_question?.message}
                                 disabled={isSubmitting}
                             />
@@ -273,12 +320,13 @@ export const ExamModalForm = memo(function ExamModalForm({
                                     min="0"
                                     max="99999.99"
                                     required
-                                    {...register("negative_marking_point", {valueAsNumber: true})}
+                                    {...register("negative_marking_point", { valueAsNumber: true })}
                                     error={errors.negative_marking_point?.message}
                                     disabled={isSubmitting}
                                 />
                             )}
                         </div>
+
                         <div className="space-y-3 pt-2">
                             <SwitchField
                                 id="publish"
@@ -299,7 +347,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                             <SwitchField
                                 id="live"
                                 label="Live Exam"
-                                description="Set exam as live/active"
+                                description="Set exam as live and active"
                                 checked={formData.live}
                                 onChange={(checked) => setValue("live", checked)}
                                 disabled={isSubmitting}
@@ -313,21 +361,34 @@ export const ExamModalForm = memo(function ExamModalForm({
                                 disabled={isSubmitting}
                             />
                         </div>
-                        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4">
-                            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}
-                                    className="w-full sm:w-auto">
+
+                        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleClose}
+                                disabled={isSubmitting}
+                                className="w-full sm:w-auto"
+                            >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                            <Button
+                                type="button"
+                                onClick={() => formHandleSubmit(handleSubmit)()}
+                                disabled={isSubmitting}
+                                className="w-full sm:w-auto min-w-30"
+                            >
                                 {isSubmitting ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                         {mode === "update" ? "Updating..." : "Creating..."}
                                     </>
-                                ) : mode === "update" ? "Update Exam" : "Create Exam"}
+                                ) : (
+                                    mode === "update" ? "Update Exam" : "Create Exam"
+                                )}
                             </Button>
                         </div>
-                    </form>
+                    </div>
                 )}
             </DialogContent>
         </Dialog>

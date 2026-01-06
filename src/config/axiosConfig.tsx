@@ -27,6 +27,7 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     (response: AxiosResponse) => {
+        console.log("⬅️ FULL RESPONSE DATA:", response.data);
         return response.data;
     },
     (error: AxiosError) => {
