@@ -209,11 +209,11 @@ export default function CreateQuestionForm({
                                                     className="space-y-2"
                                                 >
                                                     {OPTIONS.map(({value, label}, index) => (
-                                                        <Label
+                                                        <div
                                                             key={value}
-                                                            htmlFor={`answer-${value}`}
+                                                            // htmlFor={`answer-${value}`}
                                                             className={cn(
-                                                                "flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all",
+                                                                "flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border-2 transition-all",
                                                                 field.value === value
                                                                     ? "border-green-500 bg-green-50 shadow-sm"
                                                                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -237,7 +237,7 @@ export default function CreateQuestionForm({
                                                             {field.value === value && (
                                                                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
                                                             )}
-                                                        </Label>
+                                                        </div>
                                                     ))}
                                                 </RadioGroup>
                                                 {errors.correctAnswer && (
@@ -261,7 +261,8 @@ export default function CreateQuestionForm({
                             label="Explanation"
                             {...register("explanation")}
                             textarea
-                            rows={4}
+                            rows={8}
+                            className="min-h-45"
                             placeholder="Provide a detailed explanation for the correct answer..."
                         />
                         {errors.explanation && (

@@ -115,10 +115,10 @@ const CorrectAnswerRadio = ({
     isSelected: boolean;
     disabled?: boolean;
 }) => (
-    <Label
-        htmlFor={`answer-${value}`}
+    <div
+        // htmlFor={`answer-${value}`}
         className={cn(
-            "flex gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+            "flex items-center gap-3 p-3 rounded-lg border-2 transition-all",
             isSelected ? "border-green-500 bg-green-50" : "border-gray-200",
             disabled && "opacity-50 cursor-not-allowed"
         )}
@@ -139,7 +139,7 @@ const CorrectAnswerRadio = ({
         </div>
 
         {isSelected && <CheckCircle className="w-4 h-4 text-green-600" />}
-    </Label>
+    </div>
 );
 
 
@@ -295,6 +295,7 @@ export default function EditQuestionForm({
                 textarea
                 {...register('question')}
                 label={'Question'}
+                error={errors.question?.message}
             />
 
             <Button

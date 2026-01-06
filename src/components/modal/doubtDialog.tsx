@@ -29,12 +29,20 @@ export default function ResolveDoubtDialog({
   const [question, setQuestion] = useState("")
   const [explanation, setExplanation] = useState("")
   const [remark, setRemark] = useState("")
+  // const [options, setOptions] = useState([
+  //   { key: "a", text: "", isTrue: 0 },
+  //   { key: "b", text: "", isTrue: 0 },
+  //   { key: "c", text: "", isTrue: 0 },
+  //   { key: "d", text: "", isTrue: 0 },
+  // ]);
+
   const [options, setOptions] = useState([
-    { key: "a", text: "", isTrue: 0 },
-    { key: "b", text: "", isTrue: 0 },
-    { key: "c", text: "", isTrue: 0 },
-    { key: "d", text: "", isTrue: 0 },
-  ]);
+  { id: null, key: "a", text: "", isTrue: 0 },
+  { id: null, key: "b", text: "", isTrue: 0 },
+  { id: null, key: "c", text: "", isTrue: 0 },
+  { id: null, key: "d", text: "", isTrue: 0 },
+])
+
 
   useEffect(() => {
     if (!doubt) return;
@@ -46,12 +54,39 @@ export default function ResolveDoubtDialog({
     // Convert array to your modal state
     const arr = doubt.question?.options ?? [];
 
+    // const mapped = [
+    //   { key: "a", text: arr[0]?.option ?? "", isTrue: Number(arr[0]?.value ?? 0) },
+    //   { key: "b", text: arr[1]?.option ?? "", isTrue: Number(arr[1]?.value ?? 0) },
+    //   { key: "c", text: arr[2]?.option ?? "", isTrue: Number(arr[2]?.value ?? 0) },
+    //   { key: "d", text: arr[3]?.option ?? "", isTrue: Number(arr[3]?.value ?? 0) },
+    // ];
+
     const mapped = [
-      { key: "a", text: arr[0]?.option ?? "", isTrue: Number(arr[0]?.value ?? 0) },
-      { key: "b", text: arr[1]?.option ?? "", isTrue: Number(arr[1]?.value ?? 0) },
-      { key: "c", text: arr[2]?.option ?? "", isTrue: Number(arr[2]?.value ?? 0) },
-      { key: "d", text: arr[3]?.option ?? "", isTrue: Number(arr[3]?.value ?? 0) },
-    ];
+      {
+        id: arr[0]?.id ?? null,
+        key: "a",
+        text: arr[0]?.option ?? "",
+        isTrue: Number(arr[0]?.value ?? 0),
+      },
+      {
+        id: arr[1]?.id ?? null,
+        key: "b",
+        text: arr[1]?.option ?? "",
+        isTrue: Number(arr[1]?.value ?? 0),
+      },
+      {
+        id: arr[2]?.id ?? null,
+        key: "c",
+        text: arr[2]?.option ?? "",
+        isTrue: Number(arr[2]?.value ?? 0),
+      },
+      {
+        id: arr[3]?.id ?? null,
+        key: "d",
+        text: arr[3]?.option ?? "",
+        isTrue: Number(arr[3]?.value ?? 0),
+      },
+    ]
 
     setOptions(mapped);
   }, [doubt]);
@@ -89,17 +124,22 @@ export default function ResolveDoubtDialog({
       remark: remark,
       selected_id: doubt.id,
 
+      option_a_id: options[0].id,
+      option_b_id: options[1].id,
+      option_c_id: options[2].id,
+      option_d_id: options[3].id,
+
       option_a: options[0].text,
-      option_a_is_true: options[0].isTrue,
+      option_a_is_true: Boolean(options[0].isTrue),
 
       option_b: options[1].text,
-      option_b_is_true: options[1].isTrue,
+      option_b_is_true: Boolean(options[1].isTrue),
 
       option_c: options[2].text,
-      option_c_is_true: options[2].isTrue,
+      option_c_is_true: Boolean(options[2].isTrue),
 
       option_d: options[3].text,
-      option_d_is_true: options[3].isTrue,
+      option_d_is_true: Boolean(options[3].isTrue),
     };
     setLoading(true)
     try {
@@ -131,7 +171,6 @@ export default function ResolveDoubtDialog({
             textarea
             value={question}
             onChange={(e: any) => setQuestion(e.target.value)}
-            disabled
             required
           />
 
