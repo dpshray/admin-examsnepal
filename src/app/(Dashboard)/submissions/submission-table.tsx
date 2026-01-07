@@ -43,6 +43,7 @@ export function SubmissionsTable() {
             }
 
             const res = await studentService.getAllSubmissions(params)
+            console.log('F',res)
             return {
                 data: res?.submissions?.data ?? [],
                 total: res?.submissions?.total ?? 0,
@@ -182,7 +183,7 @@ export function SubmissionsTable() {
                                 row.original.score >= 80 && "bg-green-600 hover:bg-green-700"
                             )}
                         >
-                            {row.original.score}%
+                            {row.original.score}
                         </Badge>
                     </div>
                 ),
