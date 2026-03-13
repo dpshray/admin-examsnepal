@@ -1,19 +1,6 @@
 import HttpService from "@/service/http.service";
 
 class ExamService extends HttpService {
-
-    async getAllExamType() {
-        try {
-            const response = await this.getRequest({
-                url: "/exam-types",
-            })
-            return response?.data
-        } catch (error) {
-            console.error(`Error logging in: ${error}`)
-            throw error
-        }
-    }
-
     async examCategory() {
         try {
             const response = await this.getRequest({
@@ -172,8 +159,6 @@ class ExamService extends HttpService {
             throw error;
         }
     }
-
-
 }
 
 export const examService = new ExamService()

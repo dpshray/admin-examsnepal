@@ -269,7 +269,6 @@ export function ReusableDataTable<TData, TValue>({
     )
 
     const showPagination = totalPages > 1
-    const hasSearch = Boolean(search)
     const hasSelectedRows = selectedRows.length > 0
 
     return (
@@ -285,7 +284,6 @@ export function ReusableDataTable<TData, TValue>({
                                     "w-full pl-9 sm:pl-10 pr-4 h-9 sm:h-10 text-xs sm:text-sm transition-all duration-200",
                                     "border-gray-200 focus:border-[#4a358e] focus:ring-2 focus:ring-[#4a358e]/20",
                                     "placeholder:text-gray-400",
-                                    hasSearch && "pr-9 sm:pr-10"
                                 )}
                                 value={search}
                                 onChange={(e) => handleSearchChange(e.target.value)}
@@ -297,18 +295,6 @@ export function ReusableDataTable<TData, TValue>({
                                 className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-2.5 sm:pl-3.5 text-gray-400">
                                 <Search size={14} className="sm:w-4 sm:h-4" aria-hidden="true" strokeWidth={2}/>
                             </div>
-                            {hasSearch && (
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="absolute inset-y-0 right-0 h-full w-9 sm:w-10 rounded-l-none px-0 hover:bg-transparent transition-colors"
-                                    onClick={clearSearch}
-                                    aria-label="Clear search"
-                                >
-                                    <CircleX size={14}
-                                             className="sm:w-4 sm:h-4 text-gray-400 hover:text-gray-700 transition-colors"/>
-                                </Button>
-                            )}
                         </div>
                     )}
                     {children}
@@ -366,7 +352,7 @@ export function ReusableDataTable<TData, TValue>({
                             variant="outline"
                             size="sm"
                             onClick={onAddAction}
-                            className="h-9 sm:h-10 gap-1.5 sm:gap-2 w-full sm:w-auto text-xs sm:text-sm border-[#4a358e] text-[#4a358e] hover:bg-[#4a358e] hover:text-white transition-colors font-medium"
+                            className="h-9 sm:h-10 gap-1.5 sm:gap-2 w-full sm:w-auto text-xs sm:text-sm border-primary text-primary hover:bg-primary hover:text-white transition-colors font-medium"
                         >
                             <Plus size={14} className="sm:w-4 sm:h-4" aria-hidden="true" strokeWidth={2}/>
                             <span>{actionLabel}</span>
@@ -525,7 +511,7 @@ export function ReusableDataTable<TData, TValue>({
                                                 className={cn(
                                                     "h-8 w-8 sm:h-9 sm:w-9 tabular-nums text-xs sm:text-sm font-medium transition-all",
                                                     page === currentPage
-                                                        ? "bg-[#4a358e] text-white hover:bg-[#3a2870] shadow-sm"
+                                                        ? "bg-primary text-white hover:bg-primary/90 shadow-sm"
                                                         : "border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                                                 )}
                                                 aria-label={`Go to page ${page}`}

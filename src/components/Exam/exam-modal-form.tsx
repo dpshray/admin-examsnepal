@@ -16,6 +16,8 @@ import { AlertCircle, Clock, Loader2 } from "lucide-react"
 import { useExamTypes } from "@/hooks/useExamTypes"
 import { useExamCategories } from "@/hooks/useExamCategories"
 import { examService } from "@/service/exam.service"
+import { useExamTags } from "@/hooks/useExamTags"
+import MultiSelectField from "../field/multi-select-input"
 
 interface ExamFormData {
     exam_type_id: number
@@ -29,6 +31,7 @@ interface ExamFormData {
     negative_marking_point: number
     points_per_question: number
     duration: number
+    exam_tags: string[]
 }
 
 interface ExamModalProps {
@@ -51,6 +54,7 @@ const examSchema = yup.object({
     is_negative_marking: yup.boolean().required(),
     negative_marking_point: yup.number().min(0, "Must be 0 or more").required("Negative marking point is required"),
     points_per_question: yup.number().min(0, "Must be 0 or more").required("Points per question is required"),
+    exam_tags: yup.array().of(yup.string().required()).default([]),
 })
 
 const SwitchField = memo(({
@@ -102,8 +106,21 @@ export const ExamModalForm = memo(function ExamModalForm({
                                                              onSuccessAction
                                                          }: ExamModalProps) {
     const [isFetchingData, setIsFetchingData] = useState(false)
-    const { data: examTypesData, isLoading: examTypesLoading, error: examTypesError } = useExamTypes()
+    const { data: examTypesDatas, isLoading: examTypesLoading, error: examTypesError } = useExamTypes()
     const { data: examCategories, isLoading: categoriesLoading, error: categoriesError } = useExamCategories()
+    const { data: examTagsData, isLoading: examTagsLoading } = useExamTags()
+
+    const examTypesData = useMemo(() => {
+        return examTypesDatas?.data?.data ?? []
+    }, [examTypesDatas])
+
+    const examTagOptions = useMemo(() =>
+        examTagsData?.data?.data?.map((tag: any) => ({
+            label: tag.name,
+            value: tag.slug,
+        })) ?? [],
+        [examTagsData]
+    )
 
     const {
         register,
@@ -125,7 +142,8 @@ export const ExamModalForm = memo(function ExamModalForm({
             is_negative_marking: false,
             negative_marking_point: 0,
             points_per_question: 0,
-            duration: 0
+            duration: 0, 
+            exam_tags: [],
         },
     })
 
@@ -159,6 +177,7 @@ export const ExamModalForm = memo(function ExamModalForm({
             setIsFetchingData(true)
             try {
                 const response: any = await examService.getExamDetails(examId)
+                console.log("rrrrrrrr", response)
                 if (response) {
                     reset({
                         exam_type_id: response.exam_type_id ?? 0,
@@ -172,6 +191,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                         is_negative_marking: response.is_negative_marking ?? false,
                         negative_marking_point: response.negative_marking_point ?? 0,
                         points_per_question: response.points_per_question ?? 0,
+                        exam_tags: response.exam_tags?.map((tag: any) => tag.slug) ?? [],
                     })
                 }
             } catch (error: any) {
@@ -214,7 +234,7 @@ export const ExamModalForm = memo(function ExamModalForm({
         }
     }, [mode, examId, onSuccessAction, handleClose])
 
-    const isLoading = examTypesLoading || categoriesLoading || isFetchingData
+    const isLoading = examTypesLoading || categoriesLoading || isFetchingData || examTagsLoading
     const hasError = !!(examTypesError || categoriesError)
 
     return (
@@ -255,6 +275,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                             <SelectInputField
                                 label="Exam Type"
                                 placeholder="Select exam type"
+                                showAll={false}
                                 options={examTypeOptions}
                                 value={formData.exam_type_id}
                                 onChangeAction={(value) => setValue("exam_type_id", Number(value))}
@@ -265,6 +286,7 @@ export const ExamModalForm = memo(function ExamModalForm({
                             <SelectInputField
                                 label="Category"
                                 placeholder="Select category"
+                                showAll={false}
                                 options={categoryTypeOptions}
                                 value={formData.category_type}
                                 onChangeAction={(value) => setValue("category_type", Number(value))}
@@ -273,6 +295,17 @@ export const ExamModalForm = memo(function ExamModalForm({
                                 error={errors.category_type?.message}
                             />
                         </div>
+
+                        <MultiSelectField
+                            label="Exam Tags"
+                            placeholder="Select exam tags"
+                            options={examTagOptions}
+                            value={formData.exam_tags}
+                            onValueChange={(val) => setValue("exam_tags", val as string[])}
+                            disabled={isSubmitting}
+                            searchable
+                            clearable
+                        />
 
                         <TextInputField
                             label="Description"

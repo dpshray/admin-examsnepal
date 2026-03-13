@@ -18,11 +18,17 @@ export interface CategoryType {
     name: "FREE_QUIZ" | string;
 }
 
+export interface ExamTag {
+    id: number
+    name: string
+    slug: string
+}
+
 export interface Exam {
     id: number;
     published: number;
-    exam_type: ExamType;
-    category_type: CategoryType;
+    exam_type: ExamType | null;
+    category_type: CategoryType | null;
     exam_name: string;
     live: number;
     description: string;
@@ -32,6 +38,7 @@ export interface Exam {
     negative_marking_point?: number;
     points_per_question: number;
     duration?: number;
+    exam_tags?: ExamTag[]
 }
 
 export interface ExamCardProps {
@@ -72,7 +79,8 @@ export const ExamCard = memo(function ExamCard({
         points_per_question,
         description,
         category_type,
-        duration
+        duration,
+        exam_tags = [],
     } = exams;
 
     const isPublished = useMemo(() => Boolean(published), [published]);
@@ -178,9 +186,29 @@ export const ExamCard = memo(function ExamCard({
                             value={duration !== null && duration !== undefined ? `${duration} Min` : "N/A"}
                         />
 
-                        <InfoRow label="Type ID" value={exam_type.id.toString()}/>
+                        <InfoRow label="Type ID" value={exam_type?.id?.toString() ?? "N/A"}/>    
                         <InfoRow label="Category" value={category_type?.name ?? "None"}/>
-                        <InfoRow label="Exam Type" value={exam_type.name}/>
+                        <InfoRow
+                            label="Tags"
+                            value={
+                                exam_tags.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1 justify-end">
+                                        {exam_tags.map((tag) => (
+                                            <Badge
+                                                key={tag.id}
+                                                variant="secondary"
+                                                className="text-xs bg-blue-100 text-blue-700"
+                                            >
+                                                {tag.name}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-muted-foreground text-xs">None</span>
+                                )
+                            }
+                        />
+                        <InfoRow label="Exam Type" value={exam_type?.name ?? "N/A"}/>
                         <InfoRow
                             label="Questions"
                             value={

@@ -10,10 +10,10 @@ import {useCallback, useMemo, useState} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {ReusableDataTable} from "@/components/table/ReusableDataTable"
 import {studentService} from "@/service/student.service"
-import {examService} from "@/service/exam.service"
 import SelectInputField from "@/components/field/SelectInputField"
 import {cn} from "@/lib/utils"
 import SubscriptionDialog from "@/components/modal/SubscriptionDialog"
+import { examTypeService } from "@/service/examTypes.service"
 
 interface Student {
     id: number
@@ -49,10 +49,14 @@ export function StudentsDataTable() {
         },
     })
 
-    const {data: examTypes = [], isLoading: isLoadingExamTypes} = useQuery({
+    const {data: examType = [], isLoading: isLoadingExamTypes} = useQuery({
         queryKey: ["examTypes"],
-        queryFn: () => examService.getAllExamType(),
+        queryFn: () => examTypeService.getAllExamType(),
     })
+
+    const examTypes = useMemo(() => {
+        return examType?.data?.data ?? []
+    }, [examType])
 
     const examOptions = useMemo(() => {
         if (!examTypes || examTypes.length === 0) return []

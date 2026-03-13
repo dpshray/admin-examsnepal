@@ -2,8 +2,8 @@
 
 import React from "react";
 import { TrendingUp, UserCheck, Users, UserX } from "lucide-react";
-import { StudentsDataTable } from "@/app/(Dashboard)/students/StudentTable";
 import StatCard from "@/components/dasboard/StatsCard";
+import { StudentsDataTable } from "@/components/table/StudentTable";
 
 export default function StudentsPage() {
     return (
