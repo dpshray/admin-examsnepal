@@ -5,11 +5,12 @@ import ReusableSidebar from "@/components/Sidebar/ReusableSidebar";
 import { NavGroup } from "@/components/Sidebar/AppSidebar";
 import { DropdownGroup } from "@/components/Sidebar/UserDropdown";
 import {
-    User,
-    FileText,
-    Users,
-    CreditCard,
-    FileQuestionIcon, ClipboardList, HelpCircle,
+  User,
+  FileText,
+  Users,
+  ClipboardList, HelpCircle,
+  Tags,
+  LayoutGrid,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -23,6 +24,16 @@ const navGroups: NavGroup[] = [
                 label: "Exams Management",
                 href: "/exam",
                 icon: FileText,
+            },
+            {
+                label: "Exam Types",
+                href: "/exam-types",
+                icon: LayoutGrid,
+            },
+            {
+                label: "Exam Tags",
+                href: "/exam-tags",
+                icon: Tags,
             },
             {
                 label: "Student Directory",

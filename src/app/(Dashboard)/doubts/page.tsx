@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
 import { MessageCircle, HelpCircle, Clock, CheckCircle } from "lucide-react";
-import { DoubtsTable } from "@/app/(Dashboard)/doubts/doubts-tabel";
 import StatCard from "@/components/dasboard/StatsCard";
+import { DoubtsTable } from "@/components/table/doubts-tabel";
 
 export default function DoubtsPage() {
     return (

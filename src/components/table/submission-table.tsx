@@ -11,6 +11,7 @@ import {studentService} from "@/service/student.service"
 import {examService} from "@/service/exam.service"
 import SelectInputField from "@/components/field/SelectInputField"
 import {cn} from "@/lib/utils"
+import { examTypeService } from "@/service/examTypes.service"
 
 interface Submission {
     id: number
@@ -52,20 +53,22 @@ export function SubmissionsTable() {
         },
     })
 
-    const {data: examTypes = [], isLoading: isLoadingExamTypes} = useQuery({
+    const {data: examType = [], isLoading: isLoadingExamTypes} = useQuery({
         queryKey: ["examTypes"],
-        queryFn: () => examService.getAllExamType(),
+        queryFn: () => examTypeService.getAllExamType(),
     })
+
+    const examTypes = useMemo(() => {
+        return examType?.data?.data ?? []
+    }, [examType])
+
 
     const examOptions = useMemo(() => {
         if (!examTypes || examTypes.length === 0) return []
-        return [
-            {label: "All Exam Types", value: ""},
-            ...examTypes.map((examType: { id: number; name: string }) => ({
-                label: examType.name,
-                value: examType.id,
-            })),
-        ]
+            return examTypes.map((examType: { id: number; name: string }) => ({
+            label: examType.name,
+            value: examType.id,
+        }))
     }, [examTypes])
 
     const submissions = data?.data ?? []
@@ -76,7 +79,7 @@ export function SubmissionsTable() {
         setExamTypeFilter(val)
         setCurrentPage(1)
     }, [])
-
+    
     const handleSearchChange = useCallback((query: string) => {
         setSearchQuery(query)
         setCurrentPage(1)
@@ -227,6 +230,7 @@ export function SubmissionsTable() {
     )
 
     return (
+        //ssd
         <ReusableDataTable
             data={submissions}
             columns={columns}

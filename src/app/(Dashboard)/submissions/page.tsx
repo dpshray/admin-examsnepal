@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FileText, CheckCircle, Clock, XCircle } from "lucide-react";
-import { SubmissionsTable } from "@/app/(Dashboard)/submissions/submission-table";
+import { SubmissionsTable } from "@/components/table/submission-table";
 import StatCard from "@/components/dasboard/StatsCard";
 
 export default function SubmissionsPage() {

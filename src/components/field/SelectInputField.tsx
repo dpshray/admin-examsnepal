@@ -30,6 +30,7 @@ interface SelectInputFieldProps {
     value?: SelectValueType
     onChangeAction: (value: SelectValueType) => void
     disabled?: boolean
+    showAll?: boolean
     [key: string]: any
 }
 
@@ -44,35 +45,33 @@ export default function SelectInputField({
                                              value,
                                              onChangeAction,
                                              disabled = false,
+                                             showAll = true, 
                                              ...props
                                          }: SelectInputFieldProps) {
     const stringValue = value !== undefined && value !== null && value !== ""
         ? String(value)
-        : ""
+        : showAll ? "__all__" : undefined
 
     const sanitizedOptions = useMemo(
-        () =>
-            Array.from(
+        () => [
+            ...(showAll ? [{ value: "__all__", label: "All" }] : []),
+            ...Array.from(
                 new Map(
                     options
-                        .filter((opt) =>
-                            opt.value !== undefined &&
-                            opt.value !== null &&
-                            opt.value !== ""
-                        )
+                        .filter((opt) => opt.value !== undefined && opt.value !== null && opt.value !== "")
                         .map((opt) => [String(opt.value), opt])
                 ).values()
             ),
+        ],
         [options]
     )
 
     const handleValueChange = useCallback(
         (val: string) => {
-            if (val === "") {
+            if (val === "__all__") {
                 onChangeAction("")
                 return
             }
-
             const matched = sanitizedOptions.find((opt) => String(opt.value) === val)
             const originalValue = matched?.value
             if (originalValue !== undefined) {
