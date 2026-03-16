@@ -39,7 +39,7 @@ export default function SubscriptionTable() {
     })
     console.log("data", data)
 
-    const { data: examTypeData } = useExamTypes()
+    const { data: examTypeData } = useExamTypes({status: 1})
     const examTypes = examTypeData?.data?.data ?? []
 
     const examTypeOptions = useMemo(() => [
