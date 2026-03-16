@@ -30,7 +30,7 @@ export default function ExamDashboard() {
 
     const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
-    const {data: examTypesDatas, isLoading: examTypesLoading} = useExamTypes()
+    const {data: examTypesDatas, isLoading: examTypesLoading} = useExamTypes({status: 1})
     const {data: examCategories, isLoading: categoriesLoading} = useExamCategories()
 
     const examTypesData = useMemo(() => {

@@ -99,14 +99,14 @@ const SwitchField = memo(({
 SwitchField.displayName = "SwitchField"
 
 export const ExamModalForm = memo(function ExamModalForm({
-                                                             isOpen,
-                                                             onClose,
-                                                             mode = "create",
-                                                             examId,
-                                                             onSuccessAction
-                                                         }: ExamModalProps) {
+    isOpen,
+    onClose,
+    mode = "create",
+    examId,
+    onSuccessAction
+}: ExamModalProps) {
     const [isFetchingData, setIsFetchingData] = useState(false)
-    const { data: examTypesDatas, isLoading: examTypesLoading, error: examTypesError } = useExamTypes()
+    const { data: examTypesDatas, isLoading: examTypesLoading, error: examTypesError } = useExamTypes({status: 1})
     const { data: examCategories, isLoading: categoriesLoading, error: categoriesError } = useExamCategories()
     const { data: examTagsData, isLoading: examTagsLoading } = useExamTags()
 

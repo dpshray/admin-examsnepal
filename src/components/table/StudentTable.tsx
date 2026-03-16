@@ -51,7 +51,7 @@ export function StudentsDataTable() {
 
     const {data: examType = [], isLoading: isLoadingExamTypes} = useQuery({
         queryKey: ["examTypes"],
-        queryFn: () => examTypeService.getAllExamType(),
+        queryFn: () => examTypeService.getAllExamType({status: 1}),
     })
 
     const examTypes = useMemo(() => {
