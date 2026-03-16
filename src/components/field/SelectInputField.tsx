@@ -115,10 +115,10 @@ export default function SelectInputField({
                 >
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-w-(--radix-select-trigger-width)">
                     <SelectGroup>
                         {sanitizedOptions.map(({ value: optionValue, label: optionLabel }) => (
-                            <SelectItem key={String(optionValue)} value={String(optionValue)}>
+                            <SelectItem key={String(optionValue)} value={String(optionValue)} className="whitespace-normal wrap-break-word">
                                 {optionLabel}
                             </SelectItem>
                         ))}

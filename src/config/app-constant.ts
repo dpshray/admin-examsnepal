@@ -19,3 +19,5 @@ export interface PageParams {
     search?: string;
     [key: string]: string | number | boolean | undefined; 
 }
+
+export const currency = "NPR"
