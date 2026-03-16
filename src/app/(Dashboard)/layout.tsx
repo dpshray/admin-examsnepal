@@ -11,6 +11,7 @@ import {
   ClipboardList, HelpCircle,
   Tags,
   LayoutGrid,
+  CreditCard,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -21,34 +22,39 @@ const navGroups: NavGroup[] = [
         label: "Dashboard",
         items: [
             {
-                label: "Exams Management",
-                href: "/exam",
-                icon: FileText,
+              label: "Exams Management",
+              href: "/exam",
+              icon: FileText,
             },
             {
-                label: "Exam Types",
-                href: "/exam-types",
-                icon: LayoutGrid,
+              label: "Exam Types",
+              href: "/exam-types",
+              icon: LayoutGrid,
             },
             {
-                label: "Exam Tags",
-                href: "/exam-tags",
-                icon: Tags,
+              label: "Exam Tags",
+              href: "/exam-tags",
+              icon: Tags,
             },
             {
-                label: "Student Directory",
-                href: "/students",
-                icon: Users,
+              label: "Student Directory",
+              href: "/students",
+              icon: Users,
             },
             {
-                label: "Exam Submissions",
-                href: "/submissions",
-                icon: ClipboardList,
+              label: "Exam Submissions",
+              href: "/submissions",
+              icon: ClipboardList,
             },
             {
-                label: "Student Doubts",
-                href: "/doubts",
-                icon: HelpCircle,
+              label: "Student Doubts",
+              href: "/doubts",
+              icon: HelpCircle,
+            },
+            {
+              label: "Subscription Cost",
+              href: "/subscription-cost",
+              icon: CreditCard,
             },
         ],
     },
