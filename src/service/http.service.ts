@@ -38,6 +38,7 @@ class HttpServices {
         if (config?.customHeaders) {
             this.headers = {...this.headers, ...config.customHeaders};
         }
+        
     }
 
     private getAuthToken(): string | null {
@@ -48,9 +49,10 @@ class HttpServices {
     }
 
     private buildAxiosConfig(config?: HeaderConfigProps): AxiosRequestConfig {
-        const axiosConfig: AxiosRequestConfig = {
-            headers: this.headers,
-        };
+        const axiosConfig: AxiosRequestConfig = {};
+        if (Object.keys(this.headers).length > 0) {
+            axiosConfig.headers = this.headers;
+        }
         if (config?.params) {
             axiosConfig.params = config.params;
         }

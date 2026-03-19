@@ -12,6 +12,10 @@ import {
   Tags,
   LayoutGrid,
   CreditCard,
+  BookOpen,
+  List,
+  FolderOpen,
+  Tag,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -55,6 +59,16 @@ const navGroups: NavGroup[] = [
               label: "Subscription Cost",
               href: "/subscription-cost",
               icon: CreditCard,
+            },
+            {
+                label: "Blog",
+                href: "/blog",
+                icon: BookOpen,
+                children: [
+                    { label: "Blog List",     href: "/blog",     icon: List },
+                    { label: "Blog Category", href: "/blog/blog-category", icon: FolderOpen },
+                    { label: "Blog Tags",     href: "/blog/blog-tag",     icon: Tag },
+                ],
             },
         ],
     },
