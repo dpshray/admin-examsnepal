@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from "r
 import {Check, ChevronDown, Search, X} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
+import {Button, buttonVariants} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 
@@ -150,18 +150,26 @@ export default function MultiSelectField({
             )}
 
             <div className="relative">
-                <Button
+                <div
                     id={id}
-                    variant="outline"
                     role="combobox"
-                    type="button"
+                    tabIndex={disabled ? -1 : 0}
                     onClick={() => !disabled && setOpen(!open)}
+                    onKeyDown={(e) => {
+                        if (disabled) return;
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setOpen(!open);
+                        }
+                    }}
                     aria-expanded={open}
                     aria-invalid={error ? "true" : "false"}
                     aria-describedby={error ? `${id}-error` : undefined}
-                    disabled={disabled}
+                    aria-disabled={disabled}
                     className={cn(
-                        "w-full min-h-10 h-auto px-3 py-2 justify-start",
+                        buttonVariants({variant: "outline"}),
+                        "w-full min-h-10 h-auto px-3 py-2 justify-start cursor-pointer",
+                        disabled && "pointer-events-none opacity-50",
                         error && "border-destructive focus-visible:ring-destructive",
                         !hasSelection && "text-muted-foreground",
                         className
@@ -218,7 +226,7 @@ export default function MultiSelectField({
                         <ChevronDown
                             className={cn("h-4 w-4 shrink-0 opacity-50 transition-transform", open && "rotate-180")}/>
                     </div>
-                </Button>
+                </div>
 
                 {open && (
                     <div

@@ -103,10 +103,10 @@ export function DoubtsTable() {
                 search: searchQuery,
             })
             return {
-                data: res?.data?.data?.data ?? [],
-                current_page: res?.data?.data?.current_page ?? 1,
-                last_page: res?.data?.data?.last_page ?? 1,
-                total: res?.data?.data?.total ?? 0,
+                data: res?.data?.data ?? [],
+                current_page: res?.data?.current_page ?? 1,
+                last_page: res?.data?.last_page ?? 1,
+                total: res?.data?.total ?? 0,
             }
         },
     })
