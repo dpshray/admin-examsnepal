@@ -47,14 +47,26 @@ export default function SubscriptionFormDialog({ open, onOpenChange, subscriptio
     const { mutateAsync: updateSubscription, isPending: updatePending } = useUpdateSubscription()
     const isPending = createPending || updatePending
 
-    const { data: examTypeData } = useExamTypes()
+    const { data: examTypeData } = useExamTypes({ status: 1 })
     const examTypes = examTypeData?.data?.data ?? []
 
-    const examTypeOptions = useMemo(() =>
-        examTypes.map((et: { id: number; name: string }) => ({
-            label: et.name,
-            value: et.id,
-        })), [examTypes])
+    const examTypeOptions = useMemo(() => {
+        const options: { label: string; value: number }[] = examTypes.map(
+            (et: { id: number; name: string }) => ({
+                label: et.name,
+                value: et.id,
+            })
+        )
+        // If editing a plan whose exam type has since been made inactive, keep it
+        // selectable (labeled as such) so the dialog doesn't show a blank field.
+        if (subscription && !options.some((opt) => opt.value === subscription.exam_type_id)) {
+            options.push({
+                label: `${subscription.exam_type} (inactive)`,
+                value: subscription.exam_type_id,
+            })
+        }
+        return options
+    }, [examTypes, subscription])
 
     const {
         register,
