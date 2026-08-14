@@ -10,10 +10,16 @@ import ActionModal from "../modal/ActionModal"
 import { RowActions } from "./action-button"
 import { Badge } from "../ui/badge"
 
+interface ExamTypeTag {
+    id: number
+    name: string
+}
+
 interface ExamType {
     id: number
     name: string
     is_active: boolean
+    tags?: ExamTypeTag[]
 }
 
 export default function ExamTypeTable() {
@@ -100,6 +106,36 @@ export default function ExamTypeTable() {
                     {row.original.is_active ? "Active" : "Inactive"}
                 </Badge>
             ),
+        },
+        {
+            accessorKey: "tags",
+            header: () => (
+                <div className="flex items-center gap-2 font-semibold text-gray-700">
+                    <Tag className="h-4 w-4 text-purple-500" />
+                    Tags
+                </div>
+            ),
+            cell: ({ row }) => {
+                const tags = row.original.tags ?? []
+                if (tags.length === 0) {
+                    return <span className="text-xs text-muted-foreground italic">No tags</span>
+                }
+                const visible = tags.slice(0, 2)
+                const remaining = tags.length - visible.length
+                return (
+                    <div className="flex flex-wrap items-center gap-1">
+                        {visible.map((tag) => (
+                            <Badge key={tag.id} variant="secondary" className="text-xs">
+                                {tag.name}
+                            </Badge>
+                        ))}
+                        {remaining > 0 && (
+                            <Badge variant="outline" className="text-xs">+{remaining} more</Badge>
+                        )}
+                    </div>
+                )
+            },
+            enableSorting: false,
         },
         {
             id: "actions",
