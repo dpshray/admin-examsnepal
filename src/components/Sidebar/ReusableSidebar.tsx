@@ -34,6 +34,7 @@ const breadcrumbMap: { [key: string]: string } = {
     "/students": "Students",
     "/subscriptions": "Subscriptions",
     "/doubts": "Doubts",
+    "/payouts": "Teacher Payouts",
 };
 
 export default function ReusableSidebar({
