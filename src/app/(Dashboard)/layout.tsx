@@ -14,6 +14,8 @@ import {
   LayoutGrid,
   CreditCard,
   Wallet,
+  Wallet2,
+  Landmark,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -57,6 +59,11 @@ const navGroups: NavGroup[] = [
         label: "Subscription Cost",
         href: "/subscription-cost",
         icon: CreditCard,
+      },
+      {
+        label: "Payment Settings",
+        href: "/payment-settings",
+        icon: Landmark,
       },
       {
         label: "Teacher Payouts",
