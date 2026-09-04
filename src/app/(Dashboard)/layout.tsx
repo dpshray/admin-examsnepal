@@ -16,6 +16,7 @@ import {
   Wallet,
   Wallet2,
   Landmark,
+  Percent,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -64,6 +65,11 @@ const navGroups: NavGroup[] = [
         label: "Payment Settings",
         href: "/payment-settings",
         icon: Landmark,
+      },
+      {
+        label: "Promo Codes",
+        href: "/promo-codes",
+        icon: Percent,
       },
       {
         label: "Teacher Payouts",
