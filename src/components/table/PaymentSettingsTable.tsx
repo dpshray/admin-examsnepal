@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Landmark } from "lucide-react";
+import { Info, Landmark } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -18,6 +18,10 @@ interface PaymentSetting {
   created_at: string;
   updated_at: string;
 }
+
+const SETTING_DESCRIPTIONS: Record<string, string> = {
+  ios: "Controls whether iOS app users can access in-app purchases/payments. Turn on to hide payment options on iOS.",
+};
 
 function StatusToggleCell({ item }: { item: PaymentSetting }) {
   const { mutate: updateStatus, isPending } = useUpdatePaymentSettings();
@@ -43,6 +47,22 @@ function StatusToggleCell({ item }: { item: PaymentSetting }) {
   );
 }
 
+function PaymentMethodNameCell({ item }: { item: PaymentSetting }) {
+  const description = SETTING_DESCRIPTIONS[item.name.toLowerCase()];
+
+  return (
+    <div className="flex flex-col">
+      <span className="font-medium text-gray-900">{item.name}</span>
+      {description && (
+        <span className="mt-0.5 flex items-start gap-1 text-xs text-gray-500">
+          <Info className="h-3.5 w-3.5 flex-shrink-0 text-blue-500 mt-0.5" />
+          {description}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function PaymentSettingsTable() {
   const { data, isLoading, isError, error } = useGetPaymentSettings();
   const [isFormOpen, setFormOpen] = useState(false);
@@ -58,9 +78,7 @@ export default function PaymentSettingsTable() {
           Payment Method
         </div>
       ),
-      cell: ({ row }) => (
-        <span className="font-medium text-gray-900">{row.original.name}</span>
-      ),
+      cell: ({ row }) => <PaymentMethodNameCell item={row.original} />,
     },
     {
       accessorKey: "status",

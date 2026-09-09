@@ -16,6 +16,9 @@ import {
   Wallet,
   Wallet2,
   Landmark,
+  Percent,
+  Flag,
+  UserX,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -66,9 +69,24 @@ const navGroups: NavGroup[] = [
         icon: Landmark,
       },
       {
+        label: "Promo Codes",
+        href: "/promo-codes",
+        icon: Percent,
+      },
+      {
         label: "Teacher Payouts",
         href: "/payouts",
         icon: Wallet,
+      },
+      {
+        label: "Forum Reports",
+        href: "/forum-reports",
+        icon: Flag,
+      },
+      {
+        label: "Blocked Users",
+        href: "/blocked-users",
+        icon: UserX,
       },
     ],
   },
