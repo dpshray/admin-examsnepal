@@ -19,6 +19,9 @@ import {
   Percent,
   Flag,
   UserX,
+  Megaphone,
+  Radar,
+  History,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -87,6 +90,21 @@ const navGroups: NavGroup[] = [
         label: "Blocked Users",
         href: "/blocked-users",
         icon: UserX,
+      },
+      {
+        label: "Notices",
+        href: "/notices",
+        icon: Megaphone,
+      },
+      {
+        label: "Notice Sources",
+        href: "/notice-sources",
+        icon: Radar,
+      },
+      {
+        label: "Notice Fetch Logs",
+        href: "/notice-fetch-logs",
+        icon: History,
       },
     ],
   },
