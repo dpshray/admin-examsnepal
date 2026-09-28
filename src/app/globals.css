@@ -203,3 +203,31 @@
     }
 
 }
+
+/* Marketing charts: validated categorical order (blue, orange, aqua, yellow)
+   plus a one-hue blue ramp for magnitude. Aqua/yellow sit below 3:1 on the
+   light surface, so every chart ships a legend and a table view. */
+.viz-root {
+    --viz-1: #2a78d6;
+    --viz-2: #eb6834;
+    --viz-3: #1baf7a;
+    --viz-4: #eda100;
+    --viz-grid: #e7e6e2;
+    --viz-seq-100: #cde2fb;
+    --viz-seq-250: #86b6ef;
+    --viz-seq-400: #3987e5;
+    --viz-seq-550: #1c5cab;
+    --viz-seq-700: #0d366b;
+}
+.dark .viz-root {
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-3: #199e70;
+    --viz-4: #c98500;
+    --viz-grid: #383835;
+    --viz-seq-100: #104281;
+    --viz-seq-250: #1c5cab;
+    --viz-seq-400: #2a78d6;
+    --viz-seq-550: #5598e7;
+    --viz-seq-700: #9ec5f4;
+}

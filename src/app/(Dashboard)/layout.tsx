@@ -19,6 +19,12 @@ import {
   Percent,
   Flag,
   UserX,
+  Megaphone,
+  Radar,
+  History,
+  TrendingUp,
+  UserSearch,
+  MailCheck,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -87,6 +93,46 @@ const navGroups: NavGroup[] = [
         label: "Blocked Users",
         href: "/blocked-users",
         icon: UserX,
+      },
+      {
+        label: "Notices",
+        href: "/notices",
+        icon: Megaphone,
+      },
+      {
+        label: "Notice Sources",
+        href: "/notice-sources",
+        icon: Radar,
+      },
+      {
+        label: "Notice Fetch Logs",
+        href: "/notice-fetch-logs",
+        icon: History,
+      },
+    ],
+  },
+  {
+    label: "Marketing",
+    items: [
+      {
+        label: "Overview",
+        href: "/marketing",
+        icon: TrendingUp,
+      },
+      {
+        label: "Students",
+        href: "/marketing/students",
+        icon: UserSearch,
+      },
+      {
+        label: "Email automation",
+        href: "/marketing/automation",
+        icon: MailCheck,
+      },
+      {
+        label: "Email templates",
+        href: "/marketing/templates",
+        icon: FileText,
       },
     ],
   },
