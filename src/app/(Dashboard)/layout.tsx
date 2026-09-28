@@ -25,6 +25,7 @@ import {
   TrendingUp,
   UserSearch,
   MailCheck,
+  School,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -78,6 +79,11 @@ const navGroups: NavGroup[] = [
         label: "Promo Codes",
         href: "/promo-codes",
         icon: Percent,
+      },
+      {
+        label: "Classes",
+        href: "/classes",
+        icon: School,
       },
       {
         label: "Teacher Payouts",
