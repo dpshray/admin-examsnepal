@@ -26,6 +26,7 @@ import {
   UserSearch,
   MailCheck,
   School,
+  Globe,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -124,6 +125,11 @@ const navGroups: NavGroup[] = [
         label: "Overview",
         href: "/marketing",
         icon: TrendingUp,
+      },
+      {
+        label: "Web & social insights",
+        href: "/marketing/insights",
+        icon: Globe,
       },
       {
         label: "Students",
