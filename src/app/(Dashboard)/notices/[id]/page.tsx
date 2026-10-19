@@ -2,9 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, ExternalLink, FileText, RefreshCw, Star, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Check, ExternalLink, Facebook, FileText, RefreshCw, Star, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NoticeForm from "@/components/notices/NoticeForm";
+import PublishNoticeDialog from "@/components/notices/PublishNoticeDialog";
 import { ConfidenceBadge, NoticeStatusBadge, formatDateTime } from "@/components/notices/NoticeBadges";
 import { useDeleteNotice, useNotice, useNoticeAction, useSaveNotice } from "@/hooks/useNotices";
 import type { Notice } from "@/types/Notice";
@@ -17,6 +19,7 @@ export default function NoticeReviewPage() {
   const save = useSaveNotice();
   const action = useNoticeAction();
   const remove = useDeleteNotice();
+  const [publishDialog, setPublishDialog] = useState<"publish" | "facebook" | null>(null);
 
   if (isLoading) return <p className="p-8 text-sm text-muted-foreground">Loading…</p>;
   if (!notice) return <p className="p-8 text-sm text-red-600">Notice not found.</p>;
@@ -32,8 +35,20 @@ export default function NoticeReviewPage() {
         <div className="flex flex-wrap items-center gap-2">
           <NoticeStatusBadge status={notice.status} />
           {notice.status !== "published" && (
-            <Button size="sm" className="bg-green-600 hover:bg-green-700" disabled={action.isPending} onClick={() => action.mutate({ id: notice.id, action: "approve" })}>
+            <Button size="sm" className="bg-green-600 hover:bg-green-700" disabled={action.isPending} onClick={() => setPublishDialog("publish")}>
               <Check className="h-4 w-4" /> Approve &amp; publish
+            </Button>
+          )}
+          {notice.status === "published" && notice.facebook?.post_url && (
+            <Button asChild size="sm" variant="outline" className="text-[#1877F2]">
+              <a href={notice.facebook.post_url} target="_blank" rel="noopener noreferrer">
+                <Facebook className="h-4 w-4" /> View on Facebook
+              </a>
+            </Button>
+          )}
+          {notice.status === "published" && !notice.facebook?.post_id && (
+            <Button size="sm" variant="outline" className="text-[#1877F2]" onClick={() => setPublishDialog("facebook")}>
+              <Facebook className="h-4 w-4" /> {notice.facebook?.error ? "Retry Facebook post" : "Post to Facebook"}
             </Button>
           )}
           {notice.status !== "rejected" && (
@@ -127,6 +142,14 @@ export default function NoticeReviewPage() {
           <NoticeForm notice={notice} submitting={save.isPending} onSubmit={(payload) => save.mutate({ id: notice.id, data: payload })} />
         </section>
       </div>
+      {publishDialog && (
+        <PublishNoticeDialog
+          notice={notice}
+          open
+          facebookOnly={publishDialog === "facebook"}
+          onOpenChange={(open) => !open && setPublishDialog(null)}
+        />
+      )}
     </div>
   );
 }

@@ -15,6 +15,17 @@ export interface NoticeAttachment {
   name?: string | null;
 }
 
+export interface NoticeFacebookInfo {
+  configured: boolean;
+  default_caption: string;
+  notice_url: string;
+  post_id: string | null;
+  post_url: string | null;
+  posted_at: string | null;
+  error: string | null;
+  has_image: boolean;
+}
+
 export interface Notice {
   id: number;
   source_id: number | null;
@@ -55,6 +66,11 @@ export interface Notice {
   is_featured: boolean;
   view_count: number;
   published_at: string | null;
+  facebook_post_id?: string | null;
+  facebook_posted_at?: string | null;
+  facebook_error?: string | null;
+  /** Only on the detail (show/approve) responses. */
+  facebook?: NoticeFacebookInfo;
   created_at: string;
   open_reports_count?: number;
   reports?: NoticeReport[];

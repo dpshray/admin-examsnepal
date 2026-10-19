@@ -14,6 +14,8 @@ interface HeaderConfigProps {
     file?: boolean;
     params?: Record<string, any>;
     customHeaders?: Record<string, string>;
+    /** Overrides the client's default 10s timeout (ms). */
+    timeout?: number;
 }
 
 
@@ -55,6 +57,9 @@ class HttpServices {
         }
         if (config?.params) {
             axiosConfig.params = config.params;
+        }
+        if (config?.timeout) {
+            axiosConfig.timeout = config.timeout;
         }
         return axiosConfig;
     }

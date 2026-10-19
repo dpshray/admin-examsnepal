@@ -35,6 +35,16 @@ class NoticeService extends HttpService {
     return this.postRequest({ url: `/admin/notices/${id}/${action}`, config: { auth: true } });
   }
 
+  /** Publish on the website; with post_to_facebook + facebook_image in the form, also post to the Page. */
+  publishNotice(id: number, form: FormData) {
+    return this.postRequest({ url: `/admin/notices/${id}/approve`, data: form, config: { auth: true, file: true, timeout: 60000 } });
+  }
+
+  /** Post (or retry) an already-published notice to the Facebook Page. */
+  postNoticeToFacebook(id: number, form: FormData) {
+    return this.postRequest({ url: `/admin/notices/${id}/facebook`, data: form, config: { auth: true, file: true, timeout: 60000 } });
+  }
+
   // ---- reports
   getReports(params?: GetParams) {
     return this.getRequest({ url: "/admin/notice-reports", config: { params, auth: true } });
