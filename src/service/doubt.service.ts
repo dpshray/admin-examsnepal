@@ -1,6 +1,10 @@
 import HttpService from "@/service/http.service";
 
 class DoubtService extends HttpService {
+    getStats() {
+        return this.getRequest({url: "/admin/doubts/stats", config: {auth: true}});
+    }
+
     async getAllDoubts(params: any) {
         try {
             const response = await this.getRequest({

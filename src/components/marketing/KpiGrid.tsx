@@ -26,7 +26,7 @@ function Change({ kpi, format, untracked }: { kpi: Kpi<any>; format: Format; unt
   );
 }
 
-function Tile({ label, kpi, format = "int", hint, untracked }: { label: string; kpi: Kpi<any>; format?: Format; hint?: string; untracked?: boolean }) {
+export function Tile({ label, kpi, format = "int", hint, untracked }: { label: string; kpi: Kpi<any>; format?: Format; hint?: string; untracked?: boolean }) {
   const value = format === "pct" ? fmtPct(kpi.value) : format === "npr" ? fmtNpr(kpi.value) : fmtInt(kpi.value);
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm" title={hint}>

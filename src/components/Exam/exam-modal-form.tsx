@@ -177,7 +177,6 @@ export const ExamModalForm = memo(function ExamModalForm({
             setIsFetchingData(true)
             try {
                 const response: any = await examService.getExamDetails(examId)
-                console.log("rrrrrrrr", response)
                 if (response) {
                     reset({
                         exam_type_id: response.exam_type_id ?? 0,

@@ -1,6 +1,14 @@
 import HttpService from "@/service/http.service";
 
 class StudentService extends HttpService {
+    getStats() {
+        return this.getRequest({ url: "/admin/students/stats", config: { auth: true } });
+    }
+
+    getSubmissionStats() {
+        return this.getRequest({ url: "/admin/submissions/stats", config: { auth: true } });
+    }
+
     async getAllStudents(params:any) {
         try {
             const response = await this.getRequest({
@@ -75,6 +83,13 @@ class StudentService extends HttpService {
             console.error("Error verifying student:", err);
             throw err;
         }
+    }
+
+    revokeStudentVerification(studentId: number) {
+        return this.postRequest({
+            url: `/admin/manual-student-email-revoke/${studentId}`,
+            config: { auth: true }
+        });
     }
 
 }

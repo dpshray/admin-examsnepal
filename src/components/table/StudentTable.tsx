@@ -14,6 +14,17 @@ import SelectInputField from "@/components/field/SelectInputField"
 import {cn} from "@/lib/utils"
 import SubscriptionDialog from "@/components/modal/SubscriptionDialog"
 import { examTypeService } from "@/service/examTypes.service"
+import {toast} from "sonner"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Student {
     id: number
@@ -36,6 +47,7 @@ export function StudentsDataTable() {
     const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false)
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
     const [verifyingIds, setVerifyingIds] = useState<Set<number>>(new Set())
+    const [revokeTarget, setRevokeTarget] = useState<Student | null>(null)
 
     const {data, isLoading, refetch} = useQuery({
         queryKey: ["students", currentPage, searchQuery, examTypeFilter],
@@ -69,8 +81,6 @@ export function StudentsDataTable() {
         ]
     }, [examTypes])
 
-    console.log('Current Page:',currentPage)
-    console.log('Data:',data)
     const students = data?.data ?? []
     const totalPages = data?.last_page ?? 1
     const totalCount = data?.total ?? 0
@@ -95,16 +105,15 @@ export function StudentsDataTable() {
         setSelectedStudent(null)
     }, [])
 
-    const handleEmailVerifyToggle = useCallback(async (id: number, currentStatus: boolean) => {
+    const updateVerification = useCallback(async (id: number, request: () => Promise<any>) => {
         setVerifyingIds(prev => new Set(prev).add(id))
 
         try {
-            if (currentStatus) {
-                await studentService.verifyStudent(id)
-            } else {
-                await studentService.verifyStudent(id)
-            }
+            const response = await request()
+            toast.success(response?.message ?? "Student updated")
             await refetch()
+        } catch (error: any) {
+            toast.error(error?.message ?? "Could not update the student's verification")
         } finally {
             setVerifyingIds(prev => {
                 const next = new Set(prev)
@@ -113,6 +122,21 @@ export function StudentsDataTable() {
             })
         }
     }, [refetch])
+
+    const handleEmailVerifyToggle = useCallback((student: Student, isVerified: boolean) => {
+        if (isVerified) {
+            setRevokeTarget(student)
+        } else {
+            updateVerification(student.id, () => studentService.verifyStudent(student.id))
+        }
+    }, [updateVerification])
+
+    const confirmRevoke = useCallback(() => {
+        if (!revokeTarget) return
+        const {id} = revokeTarget
+        setRevokeTarget(null)
+        updateVerification(id, () => studentService.revokeStudentVerification(id))
+    }, [revokeTarget, updateVerification])
 
     const columns: ColumnDef<Student>[] = useMemo(
         () => [
@@ -196,7 +220,7 @@ export function StudentsDataTable() {
                                         )}>
                                             <Switch
                                                 checked={!!isVerified}
-                                                onCheckedChange={() => handleEmailVerifyToggle(row.original.id, !!isVerified)}
+                                                onCheckedChange={() => handleEmailVerifyToggle(row.original, !!isVerified)}
                                                 disabled={isVerifying}
                                                 className={cn(
                                                     "data-[state=checked]:bg-emerald-600",
@@ -348,6 +372,22 @@ export function StudentsDataTable() {
                 isOpen={isSubscriptionDialogOpen}
                 onClose={handleCloseSubscriptionDialog}
             />
+
+            <AlertDialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Revoke email verification?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {revokeTarget?.name} ({revokeTarget?.email}) will be blocked from logging in and using
+                            their account until their email is verified again.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmRevoke}>Revoke</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
