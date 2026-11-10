@@ -11,16 +11,7 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(
-  (config: any) => {
-    const params = new URLSearchParams(config.params).toString();
-    const queryString = params ? `?${params}` : "";
-    console.log(
-      "➡️ FULL REQUEST URL:",
-      `${config.baseURL}${config.url?.startsWith("/") ? "" : "/"}${config.url}${queryString}`,
-    );
-    return config;
-  },
-
+  (config: any) => config,
   (error: AxiosError) => {
     console.error("Request Error from axios:", error);
     return Promise.reject(error);
@@ -28,10 +19,7 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => {
-    console.log("⬅️ FULL RESPONSE DATA:", response.data);
-    return response.data;
-  },
+  (response: AxiosResponse) => response.data,
   (error: AxiosError) => {
     console.error("Response Error from axios:", error);
     if (error.status === 401 && typeof window !== "undefined") {

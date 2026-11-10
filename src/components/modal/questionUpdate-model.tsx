@@ -65,7 +65,6 @@ export default function UpdateQuestionDialog({
     resolver: yupResolver(questionSchema as any),
   });
 
-  console.log("Editing Question:", question);
 
   useEffect(() => {
     if (question) {

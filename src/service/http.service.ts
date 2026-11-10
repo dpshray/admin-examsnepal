@@ -28,7 +28,7 @@ class HttpServices {
         if (config?.auth) {
             const token = localStorage.getItem("_at");
             if (!token) {
-                window.location.href = "/login";
+                window.location.href = "/";
                 throw new Error("Authentication required. Please login first.");
 
             }
@@ -72,7 +72,7 @@ class HttpServices {
         try {
             this.setHeaders(config);
             const axiosConfig = this.buildAxiosConfig(config);
-            return await axiosInstance.post(url, data, axiosConfig);
+            return (await axiosInstance.post(url, data, axiosConfig)) as TResponse;
         } catch (error) {
             console.error(`POST request failed for ${url}:`, error);
             throw error;
@@ -86,7 +86,7 @@ class HttpServices {
         try {
             this.setHeaders(config);
             const axiosConfig = this.buildAxiosConfig(config);
-            return await axiosInstance.get(url, axiosConfig);
+            return (await axiosInstance.get(url, axiosConfig)) as TResponse;
         } catch (error) {
             console.error(`GET request failed for ${url}:`, error);
             throw error;
@@ -101,7 +101,7 @@ class HttpServices {
         try {
             this.setHeaders(config);
             const axiosConfig = this.buildAxiosConfig(config);
-            return await axiosInstance.put(url, data, axiosConfig);
+            return (await axiosInstance.put(url, data, axiosConfig)) as TResponse;
         } catch (error) {
             console.error(`PUT request failed for ${url}:`, error);
             throw error;
@@ -116,7 +116,7 @@ class HttpServices {
         try {
             this.setHeaders(config);
             const axiosConfig = this.buildAxiosConfig(config);
-            return await axiosInstance.patch(url, data, axiosConfig);
+            return (await axiosInstance.patch(url, data, axiosConfig)) as TResponse;
         } catch (error) {
             console.error(`PATCH request failed for ${url}:`, error);
             throw error;
@@ -130,7 +130,7 @@ class HttpServices {
                                                       }: RequestProps<TBody>): Promise<TResponse> {
         this.setHeaders(config);
         const axiosConfig = {...this.buildAxiosConfig(config), data};
-        return axiosInstance.delete(url, axiosConfig);
+        return axiosInstance.delete(url, axiosConfig) as Promise<TResponse>;
     }
 
 

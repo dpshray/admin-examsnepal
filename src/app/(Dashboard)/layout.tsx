@@ -12,6 +12,7 @@ import {
   HelpCircle,
   Tags,
   LayoutGrid,
+  LayoutDashboard,
   CreditCard,
   Wallet,
   Wallet2,
@@ -36,6 +37,11 @@ const navGroups: NavGroup[] = [
   {
     label: "Dashboard",
     items: [
+      {
+        label: "Overview",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+      },
       {
         label: "Exams Management",
         href: "/exam",
