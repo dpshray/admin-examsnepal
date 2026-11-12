@@ -5,7 +5,7 @@ import {Button} from "@/components/ui/button"
 import {Badge} from "@/components/ui/badge"
 import {Switch} from "@/components/ui/switch"
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
-import {BadgeDollarSign, ChevronDown, ChevronUp, ShieldCheck} from "lucide-react"
+import {BadgeDollarSign, ChevronDown, ChevronUp, MessageCircle, ShieldCheck} from "lucide-react"
 import {useCallback, useMemo, useState} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {ReusableDataTable} from "@/components/table/ReusableDataTable"
@@ -13,6 +13,7 @@ import {studentService} from "@/service/student.service"
 import SelectInputField from "@/components/field/SelectInputField"
 import {cn} from "@/lib/utils"
 import SubscriptionDialog from "@/components/modal/SubscriptionDialog"
+import WhatsAppMessageDialog, {toWhatsAppNumber} from "@/components/modal/WhatsAppMessageDialog"
 import { examTypeService } from "@/service/examTypes.service"
 import {toast} from "sonner"
 import {
@@ -48,6 +49,7 @@ export function StudentsDataTable() {
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
     const [verifyingIds, setVerifyingIds] = useState<Set<number>>(new Set())
     const [revokeTarget, setRevokeTarget] = useState<Student | null>(null)
+    const [whatsAppTarget, setWhatsAppTarget] = useState<Student | null>(null)
 
     const {data, isLoading, refetch} = useQuery({
         queryKey: ["students", currentPage, searchQuery, examTypeFilter],
@@ -267,9 +269,12 @@ export function StudentsDataTable() {
             {
                 id: "actions",
                 header: "Actions",
-                size: 100,
-                cell: ({row}) => (
+                size: 120,
+                cell: ({row}) => {
+                    const hasPhone = !!toWhatsAppNumber(row.original.phone)
+                    return (
                     <TooltipProvider delayDuration={300}>
+                        <div className="flex items-center gap-2">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
@@ -285,8 +290,29 @@ export function StudentsDataTable() {
                                 <p>Manage subscription</p>
                             </TooltipContent>
                         </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span tabIndex={hasPhone ? -1 : 0}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2 hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors"
+                                        onClick={() => setWhatsAppTarget(row.original)}
+                                        disabled={!hasPhone}
+                                        aria-label="Send WhatsApp message"
+                                    >
+                                        <MessageCircle className="h-4 w-4"/>
+                                    </Button>
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                <p>{hasPhone ? "Send WhatsApp message" : "No valid phone number"}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </div>
                     </TooltipProvider>
-                ),
+                    )
+                },
             },
         ],
         [handleOpenSubscriptionDialog, handleEmailVerifyToggle, verifyingIds]
@@ -371,6 +397,12 @@ export function StudentsDataTable() {
                 student={selectedStudent}
                 isOpen={isSubscriptionDialogOpen}
                 onClose={handleCloseSubscriptionDialog}
+            />
+
+            <WhatsAppMessageDialog
+                student={whatsAppTarget}
+                isOpen={!!whatsAppTarget}
+                onClose={() => setWhatsAppTarget(null)}
             />
 
             <AlertDialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
