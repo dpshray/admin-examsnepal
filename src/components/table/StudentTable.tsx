@@ -5,7 +5,7 @@ import {Button} from "@/components/ui/button"
 import {Badge} from "@/components/ui/badge"
 import {Switch} from "@/components/ui/switch"
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
-import {BadgeDollarSign, ChevronDown, ChevronUp, ShieldCheck} from "lucide-react"
+import {BadgeDollarSign, ChevronDown, ChevronUp, MessageCircle, ShieldCheck} from "lucide-react"
 import {useCallback, useMemo, useState} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {ReusableDataTable} from "@/components/table/ReusableDataTable"
@@ -13,7 +13,19 @@ import {studentService} from "@/service/student.service"
 import SelectInputField from "@/components/field/SelectInputField"
 import {cn} from "@/lib/utils"
 import SubscriptionDialog from "@/components/modal/SubscriptionDialog"
+import WhatsAppMessageDialog, {toWhatsAppNumber} from "@/components/modal/WhatsAppMessageDialog"
 import { examTypeService } from "@/service/examTypes.service"
+import {toast} from "sonner"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Student {
     id: number
@@ -36,6 +48,8 @@ export function StudentsDataTable() {
     const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false)
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
     const [verifyingIds, setVerifyingIds] = useState<Set<number>>(new Set())
+    const [revokeTarget, setRevokeTarget] = useState<Student | null>(null)
+    const [whatsAppTarget, setWhatsAppTarget] = useState<Student | null>(null)
 
     const {data, isLoading, refetch} = useQuery({
         queryKey: ["students", currentPage, searchQuery, examTypeFilter],
@@ -69,8 +83,6 @@ export function StudentsDataTable() {
         ]
     }, [examTypes])
 
-    console.log('Current Page:',currentPage)
-    console.log('Data:',data)
     const students = data?.data ?? []
     const totalPages = data?.last_page ?? 1
     const totalCount = data?.total ?? 0
@@ -95,16 +107,15 @@ export function StudentsDataTable() {
         setSelectedStudent(null)
     }, [])
 
-    const handleEmailVerifyToggle = useCallback(async (id: number, currentStatus: boolean) => {
+    const updateVerification = useCallback(async (id: number, request: () => Promise<any>) => {
         setVerifyingIds(prev => new Set(prev).add(id))
 
         try {
-            if (currentStatus) {
-                await studentService.verifyStudent(id)
-            } else {
-                await studentService.verifyStudent(id)
-            }
+            const response = await request()
+            toast.success(response?.message ?? "Student updated")
             await refetch()
+        } catch (error: any) {
+            toast.error(error?.message ?? "Could not update the student's verification")
         } finally {
             setVerifyingIds(prev => {
                 const next = new Set(prev)
@@ -113,6 +124,21 @@ export function StudentsDataTable() {
             })
         }
     }, [refetch])
+
+    const handleEmailVerifyToggle = useCallback((student: Student, isVerified: boolean) => {
+        if (isVerified) {
+            setRevokeTarget(student)
+        } else {
+            updateVerification(student.id, () => studentService.verifyStudent(student.id))
+        }
+    }, [updateVerification])
+
+    const confirmRevoke = useCallback(() => {
+        if (!revokeTarget) return
+        const {id} = revokeTarget
+        setRevokeTarget(null)
+        updateVerification(id, () => studentService.revokeStudentVerification(id))
+    }, [revokeTarget, updateVerification])
 
     const columns: ColumnDef<Student>[] = useMemo(
         () => [
@@ -196,7 +222,7 @@ export function StudentsDataTable() {
                                         )}>
                                             <Switch
                                                 checked={!!isVerified}
-                                                onCheckedChange={() => handleEmailVerifyToggle(row.original.id, !!isVerified)}
+                                                onCheckedChange={() => handleEmailVerifyToggle(row.original, !!isVerified)}
                                                 disabled={isVerifying}
                                                 className={cn(
                                                     "data-[state=checked]:bg-emerald-600",
@@ -243,9 +269,12 @@ export function StudentsDataTable() {
             {
                 id: "actions",
                 header: "Actions",
-                size: 100,
-                cell: ({row}) => (
+                size: 120,
+                cell: ({row}) => {
+                    const hasPhone = !!toWhatsAppNumber(row.original.phone)
+                    return (
                     <TooltipProvider delayDuration={300}>
+                        <div className="flex items-center gap-2">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
@@ -261,8 +290,29 @@ export function StudentsDataTable() {
                                 <p>Manage subscription</p>
                             </TooltipContent>
                         </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span tabIndex={hasPhone ? -1 : 0}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2 hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors"
+                                        onClick={() => setWhatsAppTarget(row.original)}
+                                        disabled={!hasPhone}
+                                        aria-label="Send WhatsApp message"
+                                    >
+                                        <MessageCircle className="h-4 w-4"/>
+                                    </Button>
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                <p>{hasPhone ? "Send WhatsApp message" : "No valid phone number"}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </div>
                     </TooltipProvider>
-                ),
+                    )
+                },
             },
         ],
         [handleOpenSubscriptionDialog, handleEmailVerifyToggle, verifyingIds]
@@ -348,6 +398,28 @@ export function StudentsDataTable() {
                 isOpen={isSubscriptionDialogOpen}
                 onClose={handleCloseSubscriptionDialog}
             />
+
+            <WhatsAppMessageDialog
+                student={whatsAppTarget}
+                isOpen={!!whatsAppTarget}
+                onClose={() => setWhatsAppTarget(null)}
+            />
+
+            <AlertDialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Revoke email verification?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {revokeTarget?.name} ({revokeTarget?.email}) will be blocked from logging in and using
+                            their account until their email is verified again.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmRevoke}>Revoke</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

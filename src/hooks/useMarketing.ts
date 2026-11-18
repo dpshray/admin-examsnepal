@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { GetParams, QUERY_STALE_TIME } from "@/config/app-constant";
 import { marketingService } from "@/service/marketing.service";
 import type { StudentFilters } from "@/types/Marketing";
+import type { InsightSourceKey } from "@/types/Insights";
 
 const errorMessage = (error: any, fallback: string) => error?.message || fallback;
 
@@ -246,5 +247,54 @@ export function useCancelBroadcast() {
       queryClient.invalidateQueries({ queryKey: ["marketing-broadcasts"] });
     },
     onError: (error: any) => toast.error(errorMessage(error, "Failed to cancel")),
+  });
+}
+
+// ---- web & social insights
+
+export const INSIGHT_SOURCES: InsightSourceKey[] = ["search", "analytics", "facebook"];
+
+export function useInsightSource(source: InsightSourceKey, range: { from: string; to: string }) {
+  return useQuery({
+    queryKey: ["marketing-insights", source, range],
+    queryFn: () => marketingService.getInsightSource(source, range),
+    // The backend caches each source for an hour; no need to refetch on focus.
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Cross-source summary; the backend reads only cached sources, so `version` (their fetch times) re-keys it once they load. */
+export function useInsightsSummary(range: { from: string; to: string }, version: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["marketing-insights-summary", range, version],
+    queryFn: () => marketingService.getInsightsSummary(range),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useRefreshInsights(range: { from: string; to: string }) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      Promise.all(
+        INSIGHT_SOURCES.map(async (source) => {
+          const res = await marketingService.getInsightSource(source, { ...range, refresh: true });
+          queryClient.setQueryData(["marketing-insights", source, range], res);
+        }),
+      ),
+    onSuccess: () => toast.success("Fetched fresh data from Google and Facebook"),
+    onError: (error: any) => toast.error(errorMessage(error, "Refresh failed")),
+  });
+}
+
+export function useMarketingBrief() {
+  return useMutation({
+    mutationFn: (data: { from: string; to: string; refresh?: boolean }) => marketingService.generateBrief(data),
+    onError: (error: any) => toast.error(errorMessage(error, "Could not generate the brief")),
   });
 }

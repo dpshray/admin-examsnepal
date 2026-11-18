@@ -37,7 +37,6 @@ export default function SubscriptionTable() {
         per_page: 10,
         ...(examTypeFilter ? { exam_type_id: examTypeFilter } : {}),
     })
-    console.log("data", data)
 
     const { data: examTypeData } = useExamTypes({status: 1})
     const examTypes = examTypeData?.data?.data ?? []

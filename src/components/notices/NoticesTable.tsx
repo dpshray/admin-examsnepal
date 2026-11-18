@@ -3,13 +3,14 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
-import { Check, ExternalLink, Flag, X } from "lucide-react";
+import { Check, ExternalLink, Facebook, Flag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ReusableDataTable } from "@/components/table/ReusableDataTable";
 import { useNoticeAction, useNotices } from "@/hooks/useNotices";
 import type { Notice, NoticeStatus, Paginated } from "@/types/Notice";
 import { ConfidenceBadge, NoticeStatusBadge, formatDateTime, humanize } from "./NoticeBadges";
+import PublishNoticeDialog from "./PublishNoticeDialog";
 
 const ALL = "__all__";
 
@@ -18,6 +19,7 @@ export default function NoticesTable({ status }: { status?: NoticeStatus }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState(ALL);
   const [statusFilter, setStatusFilter] = useState(ALL);
+  const [publishing, setPublishing] = useState<Notice | null>(null);
   const action = useNoticeAction();
 
   const { data, isLoading, isError, error, refetch } = useNotices({
@@ -89,7 +91,21 @@ export default function NoticesTable({ status }: { status?: NoticeStatus }) {
       {
         id: "status",
         header: () => <div className="font-semibold text-gray-700">Status</div>,
-        cell: ({ row }) => <NoticeStatusBadge status={row.original.status} />,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            <NoticeStatusBadge status={row.original.status} />
+            {row.original.facebook_post_id && (
+              <a href={`https://www.facebook.com/${row.original.facebook_post_id}`} target="_blank" rel="noopener noreferrer" title="On Facebook">
+                <Facebook className="h-4 w-4 text-[#1877F2]" />
+              </a>
+            )}
+            {!row.original.facebook_post_id && row.original.facebook_error && (
+              <span title={`Facebook post failed: ${row.original.facebook_error}`}>
+                <Facebook className="h-4 w-4 text-red-500" />
+              </span>
+            )}
+          </div>
+        ),
       },
       {
         id: "actions",
@@ -105,7 +121,7 @@ export default function NoticesTable({ status }: { status?: NoticeStatus }) {
                   className="h-8 border-green-200 text-green-700 hover:bg-green-50"
                   disabled={action.isPending}
                   title="Publish"
-                  onClick={() => action.mutate({ id: n.id, action: "approve" })}
+                  onClick={() => setPublishing(n)}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -161,6 +177,7 @@ export default function NoticesTable({ status }: { status?: NoticeStatus }) {
   );
 
   return (
+    <>
     <ReusableDataTable<Notice, unknown>
       data={items}
       columns={columns}
@@ -175,5 +192,9 @@ export default function NoticesTable({ status }: { status?: NoticeStatus }) {
       pagination={{ page, totalPages: result?.last_page ?? 1, onPageChangeAction: setPage, dataCount: result?.total ?? 0 }}
       noDataText={status === "pending" ? "Review queue is empty 🎉" : "No notices"}
     />
+    {publishing && (
+      <PublishNoticeDialog notice={publishing} open onOpenChange={(open) => !open && setPublishing(null)} />
+    )}
+    </>
   );
 }

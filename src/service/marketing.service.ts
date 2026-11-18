@@ -1,6 +1,7 @@
 import { GetParams } from "@/config/app-constant";
 import HttpService from "@/service/http.service";
 import type { StudentFilters } from "@/types/Marketing";
+import type { InsightSourceKey } from "@/types/Insights";
 
 /** Drop empty values so they don't reach the API as `key=`. */
 export const cleanParams = (params: object = {}) =>
@@ -142,6 +143,22 @@ class MarketingService extends HttpService {
     a.download = `students-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  // ---- web & social insights (Search Console, GA4, Facebook)
+  getInsightSource(source: InsightSourceKey, params: { from: string; to: string; refresh?: boolean }) {
+    return this.getRequest({
+      url: `/admin/marketing/insights/${source}`,
+      config: { params: cleanParams({ ...params, refresh: params.refresh ? 1 : undefined }), auth: true },
+    });
+  }
+
+  getInsightsSummary(params: { from: string; to: string }) {
+    return this.getRequest({ url: "/admin/marketing/insights/summary", config: { params, auth: true } });
+  }
+
+  generateBrief(data: { from: string; to: string; refresh?: boolean }) {
+    return this.postRequest({ url: "/admin/marketing/insights/brief", data, config: { auth: true } });
   }
 }
 

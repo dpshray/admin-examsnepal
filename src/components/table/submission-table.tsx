@@ -44,7 +44,6 @@ export function SubmissionsTable() {
             }
 
             const res = await studentService.getAllSubmissions(params)
-            console.log('F',res)
             return {
                 data: res?.submissions?.data ?? [],
                 total: res?.submissions?.total ?? 0,

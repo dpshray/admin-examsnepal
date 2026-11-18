@@ -72,6 +72,24 @@ export function useNoticeAction() {
   });
 }
 
+export function usePublishNotice() {
+  const invalidate = useInvalidateNotices();
+  return useMutation({
+    mutationFn: ({ id, form, facebookOnly }: { id: number; form: FormData; facebookOnly?: boolean }) =>
+      facebookOnly ? noticeService.postNoticeToFacebook(id, form) : noticeService.publishNotice(id, form),
+    onSuccess: (res: any) => {
+      // The website publish can succeed while the Facebook post fails - say so.
+      if (res?.data?.facebook?.error) toast.warning(res?.message || "Published, but the Facebook post failed");
+      else toast.success(res?.message || "Notice published");
+      invalidate();
+    },
+    onError: (error: any) => {
+      toast.error(errorMessage(error, "Publish failed"));
+      invalidate();
+    },
+  });
+}
+
 export function useDeleteNotice() {
   const invalidate = useInvalidateNotices();
   return useMutation({

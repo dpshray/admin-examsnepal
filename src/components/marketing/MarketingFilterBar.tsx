@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -29,13 +30,16 @@ export default function MarketingFilterBar({
   examTypes,
   onRangeChange,
   onExamTypeChange,
+  children,
 }: {
   from: string;
   to: string;
-  examTypeId: string;
-  examTypes: { id: number; name: string }[];
+  examTypeId?: string;
+  examTypes?: { id: number; name: string }[];
   onRangeChange: (range: { from: string; to: string }) => void;
-  onExamTypeChange: (id: string) => void;
+  /** Omit to hide the exam filter. */
+  onExamTypeChange?: (id: string) => void;
+  children?: React.ReactNode;
 }) {
   const activePreset = RANGE_PRESETS.find((p) => {
     const r = presetRange(p.days);
@@ -79,15 +83,18 @@ export default function MarketingFilterBar({
           aria-label="To date"
         />
       </div>
+      {onExamTypeChange && (
       <Select value={examTypeId || ALL} onValueChange={(v) => onExamTypeChange(v === ALL ? "" : v)}>
         <SelectTrigger className="h-8 w-full text-xs sm:ml-auto sm:w-64"><SelectValue placeholder="All exams" /></SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>All exams</SelectItem>
-          {examTypes.map((t) => (
+          {(examTypes ?? []).map((t) => (
             <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>
+      )}
+      {children}
     </div>
   );
 }

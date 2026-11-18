@@ -12,6 +12,7 @@ import {
   HelpCircle,
   Tags,
   LayoutGrid,
+  LayoutDashboard,
   CreditCard,
   Wallet,
   Wallet2,
@@ -25,6 +26,8 @@ import {
   TrendingUp,
   UserSearch,
   MailCheck,
+  School,
+  Globe,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -34,6 +37,11 @@ const navGroups: NavGroup[] = [
   {
     label: "Dashboard",
     items: [
+      {
+        label: "Overview",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+      },
       {
         label: "Exams Management",
         href: "/exam",
@@ -80,6 +88,11 @@ const navGroups: NavGroup[] = [
         icon: Percent,
       },
       {
+        label: "Classes",
+        href: "/classes",
+        icon: School,
+      },
+      {
         label: "Teacher Payouts",
         href: "/payouts",
         icon: Wallet,
@@ -118,6 +131,11 @@ const navGroups: NavGroup[] = [
         label: "Overview",
         href: "/marketing",
         icon: TrendingUp,
+      },
+      {
+        label: "Web & social insights",
+        href: "/marketing/insights",
+        icon: Globe,
       },
       {
         label: "Students",

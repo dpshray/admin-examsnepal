@@ -8,7 +8,6 @@ export const useExamCategories = () => {
         queryFn: async () => {
             try {
                 const response = await examService.examCategory();
-                console.log("response from useExamCategories", response);
                 return response;
             } catch (error) {
                 console.error("Error fetching exam categories:", error);

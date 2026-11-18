@@ -7,7 +7,6 @@ class AuthService extends HttpServices {
                 url: "/admin/login",
                 data,
             })
-            console.log(response)
             return response?.data
         } catch (error) {
             console.error(`Error logging in: ${error}`)

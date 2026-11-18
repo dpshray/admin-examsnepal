@@ -189,7 +189,6 @@ export default function EditQuestionForm({
         queryKey: ["question", questionId],
         queryFn: async () => {
             const res = await examService.getQuestionById(questionId);
-            console.log(res.data);
             return res.data as QuestionDetails;
         },
         enabled: !!questionId,

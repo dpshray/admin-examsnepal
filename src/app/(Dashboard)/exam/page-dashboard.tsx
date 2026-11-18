@@ -97,9 +97,6 @@ export default function AddQuestionPageWithImage() {
     const onSubmit: SubmitHandler<QuestionFormData> = async (data) => {
         setIsSubmitting(true)
         try {
-            console.log("Submitting question:", data)
-            if (data.questionImage && data.questionImage.length > 0)
-                console.log("Question includes image:", data.questionImage[0].name)
             await new Promise((resolve) => setTimeout(resolve, 1000))
             reset()
             setImagePreview(null)
