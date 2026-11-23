@@ -1,40 +1,55 @@
-import {type ClassValue, clsx} from "clsx"
-import {twMerge} from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export const generatePageRange = (currentPage: number, totalPages: number) => {
-    const delta = 2
-    const range: (number | string)[] = []
+  const delta = 2;
+  const range: (number | string)[] = [];
 
-    for (let i = Math.max(2, currentPage - delta);
-         i <= Math.min(totalPages - 1, currentPage + delta);
-         i++) {
-        range.push(i)
-    }
+  for (
+    let i = Math.max(2, currentPage - delta);
+    i <= Math.min(totalPages - 1, currentPage + delta);
+    i++
+  ) {
+    range.push(i);
+  }
 
-    if (currentPage - delta > 2) {
-        range.unshift("ellipsis")
-    }
-    if (currentPage + delta < totalPages - 1) {
-        range.push("ellipsis")
-    }
+  if (currentPage - delta > 2) {
+    range.unshift("ellipsis");
+  }
+  if (currentPage + delta < totalPages - 1) {
+    range.push("ellipsis");
+  }
 
-    range.unshift(1)
-    if (totalPages > 1) {
-        range.push(totalPages)
-    }
+  range.unshift(1);
+  if (totalPages > 1) {
+    range.push(totalPages);
+  }
 
-    return range.filter((item, index, arr) => arr.indexOf(item) === index)
-}
-
+  return range.filter((item, index, arr) => arr.indexOf(item) === index);
+};
 
 export const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    })
-}
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export const formatTime = (date: Date) => {
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+export const parseApiDate = (value?: string | null): Date | null => {
+  if (!value) return null;
+  const date = new Date(value.replace(/\//g, "-").replace(" ", "T"));
+  return isNaN(date.getTime()) ? null : date;
+};

@@ -28,6 +28,7 @@ import {
   MailCheck,
   School,
   Globe,
+  Bell,
 } from "lucide-react";
 import authService from "@/service/auth.service";
 import Image from "next/image";
@@ -111,6 +112,11 @@ const navGroups: NavGroup[] = [
         label: "Notices",
         href: "/notices",
         icon: Megaphone,
+      },
+      {
+        label: "Notifications",
+        href: "/notifications",
+        icon: Bell,
       },
       {
         label: "Notice Sources",
